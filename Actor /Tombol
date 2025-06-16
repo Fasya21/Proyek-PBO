@@ -1,0 +1,41 @@
+import greenfoot.*;
+
+public class Tombol extends Actor {
+    private GreenfootImage gambarDefault;
+    private GreenfootImage gambarHover;
+    private String namaAksi;
+
+    public Tombol(String aksi, String namaFileGambar) {
+        this.namaAksi = aksi;
+        gambarDefault = new GreenfootImage(namaFileGambar);
+        
+        // Buat gambar hover dengan membuatnya sedikit lebih besar dan terang
+        gambarHover = new GreenfootImage(namaFileGambar);
+        gambarHover.scale((int)(gambarHover.getWidth() * 1.1), (int)(gambarHover.getHeight() * 1.1));
+        
+        setImage(gambarDefault);
+    }
+    
+    public void act() {
+        // Efek hover (tombol membesar saat mouse di atasnya)
+        if (Greenfoot.mouseMoved(this)) {
+            setImage(gambarHover);
+        }
+        if (Greenfoot.mouseMoved(null) && !Greenfoot.mouseMoved(this)) {
+            setImage(gambarDefault);
+        }
+        
+        // Aksi saat diklik
+        if (Greenfoot.mouseClicked(this)) {
+            // Greenfoot.playSound("click.wav"); // Suara klik jika ada
+            
+            // Lakukan aksi berdasarkan nama yang diberikan
+            if (namaAksi.equals("mulai")) {
+                // Pindah ke layar cerita
+                Greenfoot.setWorld(new LayarCerita());
+            } else if (namaAksi.equals("keluar")) {
+                Greenfoot.stop();
+            }
+        }
+    }
+}
