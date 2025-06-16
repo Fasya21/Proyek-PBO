@@ -1,0 +1,42 @@
+import greenfoot.*;
+
+public class LayarGameOver extends World {
+
+    public LayarGameOver(int finalScore) {
+        super(1024, 576, 1); // Sesuaikan ukuran jika perlu
+
+        // Buat latar belakang gelap
+        GreenfootImage bg = new GreenfootImage(getWidth(), getHeight());
+        bg.setColor(Color.BLACK);
+        bg.fill();
+        setBackground(bg);
+
+        // Tampilkan teks "GAME OVER"
+        GreenfootImage textGameOver = new GreenfootImage("GAME OVER", 80, Color.RED, new Color(0,0,0,0));
+        addObject(new AktorTeks(textGameOver), getWidth() / 2, getHeight() / 2 - 100);
+
+        // Tampilkan skor akhir
+        GreenfootImage textScore = new GreenfootImage("Skor Akhir: " + finalScore, 40, Color.WHITE, new Color(0,0,0,0));
+        addObject(new AktorTeks(textScore), getWidth() / 2, getHeight() / 2);
+
+        // Tampilkan instruksi untuk kembali ke menu
+        GreenfootImage textRestart = new GreenfootImage("Tekan Spasi untuk kembali ke Menu", 30, Color.GRAY, new Color(0,0,0,0));
+        addObject(new AktorTeks(textRestart), getWidth() / 2, getHeight() / 2 + 150);
+    }
+
+    public void act() {
+        // Jika pemain menekan spasi, kembali ke menu utama
+        if (Greenfoot.isKeyDown("space")) {
+            Greenfoot.setWorld(new MenuUtama());
+        }
+    }
+}
+
+/**
+ * Kelas Aktor sederhana hanya untuk menampilkan gambar teks.
+ */
+class AktorTeks extends Actor {
+    public AktorTeks(GreenfootImage gambar) {
+        setImage(gambar);
+    }
+}
