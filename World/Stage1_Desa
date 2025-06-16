@@ -37,7 +37,7 @@ public class Stage1_Desa extends World {
     
     // Tempatkan beberapa musuh
     // Kita naikkan juga posisi musuh agar mereka berdiri di atas platform
-    addObject(new Musuh(), 600, 350);
+    addObject(new Musuh(), 600, 360);
     addObject(new Musuh(), 800, 350);
     
     // Tempatkan tujuan akhir
