@@ -34,6 +34,8 @@ public class Knight extends Actor {
     // >>> PROPERTI SUARA TAMBAHAN <<<
     private GreenfootSound runSound = new GreenfootSound("run.wav");
     private boolean isRunSoundPlaying = false; // Flag untuk mengelola suara lari
+    // Tambahkan GreenfootSound untuk suara "game over"
+    private GreenfootSound gameOverSound = new GreenfootSound("over.wav"); // Deklarasi suara over.wav
 
     public Knight() {
         // Panggil semua metode untuk memuat aset animasi
@@ -74,7 +76,7 @@ public class Knight extends Actor {
         }
     }
 
-    // >>> METODE BARU UNTUK MENGHENTIKAN SEMUA SUARA LOOPING DARI KNIGHT <<<
+    // >>> METODE UNTUK MENGHENTIKAN SEMUA SUARA LOOPING DARI KNIGHT <<<
     // Ini penting dipanggil saat game over atau pindah stage
     public void stopAllSounds() {
         if (runSound != null && isRunSoundPlaying) {
@@ -82,6 +84,7 @@ public class Knight extends Actor {
             isRunSoundPlaying = false;
         }
         // Jika ada suara looping lain dari Knight, hentikan juga di sini
+        // Misalnya, jika ada suara kebal yang looping, dll.
     }
 
     // === BAGIAN GERAKAN DAN INPUT ===
@@ -125,10 +128,7 @@ public class Knight extends Actor {
                         int wallRightEdge = wall.getX() + (wall.getImage().getWidth() / 2);
                         setLocation(wallRightEdge + (getImage().getWidth() / 2), getY());
                     }
-                    // Opsional: Hentikan suara lari jika Knight mentok dinding
-                    // if (isRunSoundPlaying) { runSound.stop(); isRunSoundPlaying = false; }
                 }
-                // Jika tidak ada kolisi, karakter tetap di nextX (sudah diset)
             } else {
                 // >>> HENTIKAN SUARA LARI JIKA TIDAK BERGERAK HORIZONTAL <<<
                 if (isRunSoundPlaying) {
@@ -150,12 +150,6 @@ public class Knight extends Actor {
                     isRunSoundPlaying = false;
                 }
             }
-
-            // Reset index animasi jalan jika tidak bergerak secara horizontal
-            // Ini sudah ada, tapi memastikan konsistensi dengan logika suara.
-            // if (!movingHorizontally) {
-            //     walkFrameIndex = 0;
-            // }
         }
 
         // Serangan bisa dilakukan kapan saja, asalkan tidak dalam cooldown
@@ -265,10 +259,15 @@ public class Knight extends Actor {
                 // Pastikan kelas World Anda memiliki metode playerDied() dan extends GameWorld atau memiliki casting yang benar
                 if (getWorld() instanceof GameWorld) { // Cek tipe casting
                     ((GameWorld) getWorld()).playerDied();
+                    // >>> MAIN KAN SUARA GAME OVER KETIKA NYAWA BERKURANG / KALAH <<<
+                    // Ini akan bermain setiap kali Knight terkena damage dan tidak kebal
+                    // Jika playerDied() berarti game over, ini adalah tempat yang tepat.
+                    // Jika playerDied() hanya mengurangi nyawa, Anda mungkin ingin memindahkan
+                    // Greenfoot.playSound("over.wav") ke dalam playerDied() atau kondisi game over di World.
+                    // Untuk saat ini, kita anggap ini adalah pemicu langsung untuk suara "game over".
+                    gameOverSound.play(); // Mainkan suara over.wav
                 } else {
-                    // Fallback atau pesan error jika World bukan GameWorld
                     System.err.println("Error: Current World is not an instance of GameWorld. Cannot call playerDied().");
-                    // Greenfoot.stop(); // Opsional: Hentikan game jika ini adalah error fatal
                 }
 
                 // >>> PASTIKAN SUARA LARI BERHENTI SAAT TERKENA DAMAGE/KEBAL <<<
@@ -284,9 +283,9 @@ public class Knight extends Actor {
     private void animate() {
         animationTimer++;
         if (animationTimer < ANIMATION_SPEED) {
-            return; // Belum waktunya ganti frame, keluar dari metode
+            return;
         }
-        animationTimer = 0; // Reset timer
+        animationTimer = 0;
 
         GreenfootImage frameToDisplay;
 
@@ -295,7 +294,7 @@ public class Knight extends Actor {
             if (attackFrameIndex >= attackFrames.length) {
                 isAttacking = false;
                 attackFrameIndex = 0;
-                frameToDisplay = idleFrames[0]; // Setelah serang, kembali ke idle
+                frameToDisplay = idleFrames[0];
             } else {
                 frameToDisplay = attackFrames[attackFrameIndex];
                 if (attackFrameIndex == 3) {
@@ -303,25 +302,19 @@ public class Knight extends Actor {
                 }
             }
         } else if (!onGround()) {
-            // Jika tidak menyerang, BARU cek apakah di udara.
             jumpFrameIndex = (jumpFrameIndex + 1) % jumpFrames.length;
             frameToDisplay = jumpFrames[jumpFrameIndex];
         } else if (Greenfoot.isKeyDown("d") || Greenfoot.isKeyDown("right")) {
-            // Jika tidak di udara, BARU cek apakah berjalan ke kanan.
             walkFrameIndex = (walkFrameIndex + 1) % walkFrames.length;
             frameToDisplay = walkFrames[walkFrameIndex];
         } else if (Greenfoot.isKeyDown("a") || Greenfoot.isKeyDown("left")) {
-            // Jika tidak jalan ke kanan, BARU cek apakah berjalan ke kiri.
             walkFrameIndex = (walkFrameIndex + 1) % walkFrames.length;
             frameToDisplay = walkFrames[walkFrameIndex];
         } else {
-            // Jika tidak ada kondisi lain yang terpenuhi, berarti sedang diam.
             idleFrameIndex = (idleFrameIndex + 1) % idleFrames.length;
             frameToDisplay = idleFrames[idleFrameIndex];
         }
 
-        // Cek arah hadap karakter untuk menentukan perlu dicerminkan atau tidak.
-        // HANYA cerminkan jika bukan animasi serangan (asumsi animasi serangan sudah ada versi kiri/kanan atau tidak perlu dicerminkan)
         if (direction.equals("left") && !isAttacking) {
             GreenfootImage mirroredImage = new GreenfootImage(frameToDisplay);
             mirroredImage.mirrorHorizontally();
