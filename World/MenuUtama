@@ -1,22 +1,49 @@
 import greenfoot.*;
 
 public class MenuUtama extends World {
+    private GreenfootSound themeMusic;
+    private GreenfootSound clickSound;
+    private Tombol tombolMulai;
 
     public MenuUtama() {
-        super(1024, 576, 1); // Ukuran bisa disesuaikan
-        
-        // Gunakan salah satu background desa Anda yang paling bagus untuk menu
+        super(1024, 576, 1);
+
+        // Atur background
         GreenfootImage background = new GreenfootImage("Village.jpg");
         background.scale(getWidth(), getHeight());
         setBackground(background);
-        
-        // Tambahkan Judul Game
+
+        // Tampilkan judul
         showText("Petualangan Elara", getWidth() / 2, 150);
-        
-        // Tambahkan Tombol Mulai
-        addObject(new Tombol("mulai", "tombol_mulai.png"), getWidth() / 2, 300);
-        
-        // Tambahkan Tombol Keluar
-        // addObject(new Tombol("keluar", "tombol_keluar.png"), getWidth() / 2, 400);
+
+        // Tambahkan tombol mulai
+        tombolMulai = new Tombol("mulai", "tombol_mulai.png");
+        addObject(tombolMulai, getWidth() / 2, 300);
+
+        // Mainkan musik tema
+        themeMusic = new GreenfootSound("theme.wav");
+        themeMusic.setVolume(70);
+        themeMusic.playLoop();
+
+        // Siapkan suara klik
+        clickSound = new GreenfootSound("click.wav");
+        clickSound.setVolume(80); // Sesuaikan jika perlu
+    }
+
+    public void act() {
+        if (Greenfoot.mouseClicked(tombolMulai)) {
+            clickSound.play();     // Mainkan efek klik
+            themeMusic.stop();     // Hentikan musik
+            Greenfoot.delay(10);   // Tunggu sedikit agar suara terdengar
+            Greenfoot.setWorld(new LayarCerita());
+        }
+    }
+
+    public void stopped() {
+        themeMusic.pause();
+    }
+
+    public void started() {
+        themeMusic.playLoop();
     }
 }
