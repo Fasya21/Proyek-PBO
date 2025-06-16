@@ -46,8 +46,8 @@ public class Stage2_Arena extends World {
         addObject(new Knight(), 100, 500);
         
         // Tempatkan beberapa musuh di lokasi yang menantang
-        addObject(new Musuh(), 1020, 550); // Musuh di platform kanan
-        addObject(new Musuh(), 600, 450);  // Musuh di lantai tengah arena
+        addObject(new Musuh(), 1000, 365); // Musuh di platform kanan
+        addObject(new Musuh(), 600, 465);  // Musuh di lantai tengah arena
         
         // Tempatkan Portal tujuan di balkon tertinggi
         addObject(new Portal(), 600, 250);
