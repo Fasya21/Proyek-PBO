@@ -1,0 +1,20 @@
+import greenfoot.*;
+public class Portal extends Actor {
+    public Portal() {
+        // Portal ini tak terlihat
+        getImage().setTransparency(0); 
+    }
+    public void act() {
+        if (isTouching(Knight.class)) {
+        if (getWorld() instanceof Stage1_Desa) {
+            Greenfoot.setWorld(new Stage2_Arena());
+        } else if (getWorld() instanceof Stage2_Arena) {
+            Greenfoot.setWorld(new Stage3_Perbatasan()); // <-- Pindah ke Stage 3
+        } else if (getWorld() instanceof Stage3_Perbatasan) {
+            // Nanti akan pindah ke layar Boss
+            getWorld().showText("SELAMAT! ANDA MENYELESAIKAN SEMUA STAGE!", getWorld().getWidth()/2, getWorld().getHeight()/2);
+            Greenfoot.stop();
+        }
+    }
+    }
+}
