@@ -5,15 +5,9 @@ public class Portal extends Actor {
     public Portal() {
         // Portal ini dibuat tidak terlihat agar menyatu dengan game
         getImage().setTransparency(0);
-        
+
         // Tips: Jika Anda ingin melihat posisi portal saat mendesain level,
         // hapus sementara tanda komentar di bawah ini.
-        /*
-        GreenfootImage debugBox = new GreenfootImage(50, 80);
-        debugBox.setColor(new Color(150, 0, 200, 100)); // Warna ungu transparan
-        debugBox.fill();
-        setImage(debugBox);
-        */
     }
 
     public void act() {
@@ -22,10 +16,13 @@ public class Portal extends Actor {
 
         // Jika Knight terdeteksi menyentuh portal
         if (knight != null) {
-            
+
+            // >>> TAMBAHKAN BARIS INI UNTUK MENGHENTIKAN SUARA LARI KNIGHT <<<
+            knight.stopAllSounds(); // Memanggil metode di kelas Knight untuk menghentikan suara looping
+
             // Mengambil referensi ke world saat ini
             GameWorld worldSaatIni = (GameWorld) getWorld();
-            
+
             // Mengambil data skor dan nyawa dari world saat ini
             int skorSekarang = worldSaatIni.getScore();
             int nyawaSekarang = worldSaatIni.getLives();
@@ -33,10 +30,10 @@ public class Portal extends Actor {
             // Tentukan stage berikutnya berdasarkan stage saat ini
             if (worldSaatIni instanceof Stage1_Desa) {
                 Greenfoot.setWorld(new Stage2_Arena(skorSekarang, nyawaSekarang));
-                
+
             } else if (worldSaatIni instanceof Stage2_Arena) {
                 Greenfoot.setWorld(new Stage3_Perbatasan(skorSekarang, nyawaSekarang));
-                
+
             } else if (worldSaatIni instanceof Stage3_Perbatasan) {
                 // Setelah stage terakhir, pindah ke layar Game Over (yang akan menampilkan kemenangan)
                 Greenfoot.setWorld(new LayarGameOver(skorSekarang));
