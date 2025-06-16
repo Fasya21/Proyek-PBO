@@ -1,0 +1,72 @@
+import greenfoot.*;
+
+public class Stage1_Desa extends World {
+    // Ukuran disesuaikan dengan gambar Pasar.jpg
+    private static final int LEBAR = 1024;
+    private static final int TINGGI = 576;
+    
+    private int score;
+
+    public Stage1_Desa() {
+        super(LEBAR, TINGGI, 1);
+        GreenfootImage background = new GreenfootImage("Pasar.jpg");
+        background.scale(getWidth(), getHeight());
+        setBackground(background);
+        
+        // Panggil metode untuk menata level
+        tataLevel();
+        siapkanUI();
+        
+        // Mengatur urutan render agar Knight selalu di depan
+        setPaintOrder(Knight.class, Musuh.class, Platform.class);
+    }
+    
+    private void tataLevel() {
+    // MENEMPATKAN PLATFORM TAK TERLIHAT
+    // Ini adalah pijakan utama di bagian bawah (di Y=400)
+    addObject(new Platform(1024, 20), LEBAR / 2, 545);
+    
+    // Pijakan di atas atap gedung kiri (di Y=340)
+    addObject(new Platform(300, 20), 250, 490);
+    
+    // MENEMPATKAN AKTOR
+    // Tempatkan Knight di awal.
+    // Kita taruh di Y=300 agar ia jatuh sedikit ke atas platform atap (di Y=340)
+    // atau jatuh lebih jauh ke platform utama (di Y=400).
+    addObject(new Knight(), 100, 400); // <-- UBAH BARIS INI
+    
+    // Tempatkan beberapa musuh
+    // Kita naikkan juga posisi musuh agar mereka berdiri di atas platform
+    addObject(new Musuh(), 600, 350);
+    addObject(new Musuh(), 800, 350);
+    
+    // Tempatkan tujuan akhir
+    addObject(new Portal(), 980, 350);
+    }
+    private void siapkanUI() {
+        // Tampilkan nama stage di pojok kiri atas
+        showText("Stage 1: Desa", 150, 30);
+        
+        // Atur skor awal dan tampilkan
+        score = 0;
+        updateScoreDisplay();
+    }
+    public void addScore(int points) {
+        score = score + points;
+        updateScoreDisplay();
+    }
+    
+    /**
+     * Metode untuk memperbarui tampilan skor di layar.
+     */
+    private void updateScoreDisplay() {
+        // Hapus teks lama dengan menggambar kotak warna background di atasnya
+        getBackground().setColor(new Color(66, 70, 77)); // Warna background Arena.jpg (perkiraan)
+        getBackground().fillRect(LEBAR - 200, 10, 180, 40);
+        
+        // Tampilkan teks skor yang baru
+        getBackground().setColor(Color.WHITE);
+        getBackground().drawString("Skor: " + score, LEBAR - 150, 30);
+    }
+    
+}
