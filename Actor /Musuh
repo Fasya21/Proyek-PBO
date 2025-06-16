@@ -1,0 +1,49 @@
+import greenfoot.*;
+
+public class Musuh extends Actor {
+    // Animasi
+    private GreenfootImage[] idleFrames;
+    private int currentFrame = 0;
+    private int animationTimer = 0;
+    private final int ANIMATION_SPEED = 12;
+
+    public Musuh() {
+        loadIdleAnimation();
+        setImage(idleFrames[0]);
+    }
+
+    public void act() {
+        animateIdle();
+    }
+
+    private void loadIdleAnimation() {
+        idleFrames = new GreenfootImage[11]; // Spritesheet ini punya 11 frame
+        int frameWidth = 32; // Sesuaikan jika perlu
+        int frameHeight = 32; // Sesuaikan jika perlu
+        GreenfootImage spritesheet = new GreenfootImage("Idle.png"); // Nama file musuh
+        for (int i = 0; i < idleFrames.length; i++) {
+            idleFrames[i] = new GreenfootImage(frameWidth, frameHeight);
+            idleFrames[i].drawImage(spritesheet, -i * frameWidth, 0);
+        }
+    }
+
+    private void animateIdle() {
+    animationTimer++;
+    if (animationTimer >= ANIMATION_SPEED) {
+        animationTimer = 0;
+        
+        // Bergerak maju melalui frame
+        if (currentFrame < idleFrames.length - 1) {
+            currentFrame++;
+        } 
+        // Kembali ke frame pertama setelah mencapai akhir
+        else {
+            currentFrame = 0;
+            // Beri jeda sebelum memulai lagi
+            Greenfoot.delay(10);
+        }
+        
+        setImage(idleFrames[currentFrame]);
+    }
+}
+}
