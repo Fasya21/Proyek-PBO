@@ -1,31 +1,40 @@
 import greenfoot.*;
 
-public class Stage2_Arena extends World {
+public class Stage2_Arena extends GameWorld {
     // Ukuran disesuaikan dengan gambar Arena.jpg (perkiraan)
     private static final int LEBAR = 1024;
     private static final int TINGGI = 576;
-    
-    // Variabel untuk UI
     private int score;
-
+    private boolean setupDone = false;
+    
     public Stage2_Arena() {
-        super(LEBAR, TINGGI, 1);
-        
-        // Siapkan background dengan metode scaling agar pas
+        super();// Memanggil constructor GameWorld untuk memulai dengan 3 nyawa
+    }
+    
+    public Stage2_Arena(int scoreSebelumnya, int livesSebelumnya) {
+        // Mengoper data ke kelas induk (GameWorld)
+        super(scoreSebelumnya, livesSebelumnya); 
+    }    
+
+    public void act() {
+        if (!setupDone) {
+            prepare();
+            setupDone = true;
+        }
+    }
+
+    private void prepare() {
+        // Ganti background dengan gambar arena
         GreenfootImage background = new GreenfootImage("Arena.jpg");
         background.scale(getWidth(), getHeight());
         setBackground(background);
         
-        // Panggil metode untuk menata level dan UI
         tataLevel();
-        siapkanUI();
+        siapkanUI("Stage 2: Arena Ujian");
         
-        setPaintOrder(Knight.class, Musuh.class, Portal.class, Platform.class);
+        setPaintOrder(Knight.class, Musuh.class, UI_Hati.class, Portal.class, Platform.class);
     }
     
-    /**
-     * Metode untuk menata semua platform, karakter, dan musuh.
-     */
     private void tataLevel() {
         // Tempatkan platform tak terlihat sesuai dengan gambar Arena.jpg
         
@@ -57,36 +66,4 @@ public class Stage2_Arena extends World {
         addObject(new Portal(), 1024, 540);
     }
     
-    /**
-     * Metode untuk menyiapkan tampilan UI awal.
-     */
-    private void siapkanUI() {
-        // Tampilkan nama stage di pojok kiri atas
-        showText("Stage 2: Arena Ujian", 150, 30);
-        
-        // Atur skor awal dan tampilkan
-        score = 0;
-        updateScoreDisplay();
-    }
-    
-    /**
-     * Metode untuk menambah skor.
-     */
-    public void addScore(int points) {
-        score = score + points;
-        updateScoreDisplay();
-    }
-    
-    /**
-     * Metode untuk memperbarui tampilan skor di layar.
-     */
-    private void updateScoreDisplay() {
-        // Hapus teks lama dengan menggambar kotak warna background di atasnya
-        getBackground().setColor(new Color(66, 70, 77)); // Warna background Arena.jpg (perkiraan)
-        getBackground().fillRect(LEBAR - 200, 10, 180, 40);
-        
-        // Tampilkan teks skor yang baru
-        getBackground().setColor(Color.WHITE);
-        getBackground().drawString("Skor: " + score, LEBAR - 150, 30);
-    }
 }
