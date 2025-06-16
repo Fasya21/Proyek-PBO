@@ -27,6 +27,8 @@ public class Knight extends Actor {
     private int attackCooldown= 0; // Cooldown untuk serangan
     private String direction = "right"; // Arah hadap karakter
     
+    private int attackPower = 50; // Damage per hit
+    
     public Knight() {
         // Panggil semua metode untuk memuat aset animasi
         loadIdleAnimation();
@@ -177,6 +179,7 @@ public class Knight extends Actor {
     
     private void checkAttackHit() {
         // Cek apakah ada musuh dalam jangkauan serangan
+        // Cek apakah ada musuh dalam jangkauan serangan
         int checkDistance = 40; // Jarak jangkauan serangan dari tengah Knight
         if (direction.equals("left")) {
             checkDistance = -checkDistance; // Arah ke kiri, jadi jaraknya negatif
@@ -184,14 +187,8 @@ public class Knight extends Actor {
 
         Musuh enemy = (Musuh) getOneObjectAtOffset(checkDistance, 0, Musuh.class);
         if (enemy != null) {
-            // Tambahkan skor berdasarkan stage saat ini
-            // Idealnya, metode addScore() harus ada di superclass World yang umum (misalnya BaseStage)
-            if (getWorld() instanceof Stage1_Desa) { ((Stage1_Desa) getWorld()).addScore(15); }
-            else if (getWorld() instanceof Stage2_Arena) { ((Stage2_Arena) getWorld()).addScore(15); }
-            else if (getWorld() instanceof Stage3_Perbatasan) { ((Stage3_Perbatasan) getWorld()).addScore(15); }
-
-            // Hapus musuh
-            getWorld().removeObject(enemy);
+            // Panggil metode takeDamage pada musuh dan berikan damage
+            enemy.takeDamage(attackPower); // attackPower didefinisikan sebagai 35
         }
     }
 
@@ -202,12 +199,13 @@ public class Knight extends Actor {
             // Knight menginjak musuh dari atas (bunuh musuh)
             // Toleransi untuk menginjak: Knight harus sedikit di atas musuh
             if (vSpeed > 0 && getY() < enemy.getY() - (enemy.getImage().getHeight() / 2) + 10) { 
+                enemy.takeDamage(100); // Asumsi 100 adalah damage yang fatal
+                
                 // Tambahkan skor berdasarkan stage
                 if (getWorld() instanceof Stage1_Desa) { ((Stage1_Desa) getWorld()).addScore(10); }
                 else if (getWorld() instanceof Stage2_Arena) { ((Stage2_Arena) getWorld()).addScore(10); }
                 else if (getWorld() instanceof Stage3_Perbatasan) { ((Stage3_Perbatasan) getWorld()).addScore(10); }
                 
-                getWorld().removeObject(enemy); // Hapus musuh
                 vSpeed = -8; // Knight terpental sedikit ke atas setelah menginjak
             } else { // Knight menyentuh musuh dari samping (kalah)
                 getWorld().showText("Anda Kalah!", getWorld().getWidth()/2, getWorld().getHeight()/2);
