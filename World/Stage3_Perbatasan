@@ -24,18 +24,24 @@ public class Stage3_Perbatasan extends World {
         // Pijakan utama
         addObject(new Platform(400, 20), 100, 515);
         addObject(new Platform(970, 20), 800, 470);
+        addObject(new Platform(35, 30), 300, 490);
         
         // Pijakan melayang yang butuh lompatan presisi
-        addObject(new Platform(100, 20), 500, 400);
-        addObject(new Platform(100, 20), 650, 350);
+        addObject(new Platform(200, 10), 580, 390);
+        addObject(new Platform(80, 10), 780, 355);
+        
+        // Pijakan di atap rumah
+        addObject(new Platform(200, 10), 930, 300);
         
         // Tempatkan Knight di awal
         addObject(new Knight(), 80, 470);
         
         // Musuh lebih banyak dan di posisi menyulitkan
-        addObject(new Musuh(), 350, 435);
+        addObject(new Musuh(), 250, 485);
         addObject(new Musuh(), 700, 435);
-        addObject(new Musuh(), 650, 317); // Musuh di platform atas
+        addObject(new Musuh(), 650, 370);
+        addObject(new Musuh(), 650, 370);
+        addObject(new Musuh(), 930, 280); // Diatas atap
         
         // Portal menuju Boss (untuk nanti)
         addObject(new Portal(), 980, 500);
