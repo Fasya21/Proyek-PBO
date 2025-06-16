@@ -119,8 +119,8 @@ public class Knight extends Actor {
 
     private void loadIdleAnimation() {
         idleFrames = new GreenfootImage[4];
-        int frameWidth = 48; 
-        int frameHeight = 48;
+        int frameWidth = 100; 
+        int frameHeight = 64;
         GreenfootImage spritesheet = new GreenfootImage("idle_knigth.png");
         for (int i = 0; i < idleFrames.length; i++) {
             idleFrames[i] = new GreenfootImage(frameWidth, frameHeight);
@@ -133,8 +133,8 @@ public class Knight extends Actor {
         int frameCount = 7; 
         walkRightFrames = new GreenfootImage[frameCount];
         walkLeftFrames = new GreenfootImage[frameCount];
-        int frameWidth = 48; 
-        int frameHeight = 48;
+        int frameWidth = 100; 
+        int frameHeight = 64;
         GreenfootImage spritesheet = new GreenfootImage("walk_knight.png"); // Pastikan nama file ini ada
         for (int i = 0; i < walkRightFrames.length; i++) {
             walkRightFrames[i] = new GreenfootImage(frameWidth, frameHeight);
