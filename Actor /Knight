@@ -1,0 +1,146 @@
+import greenfoot.*;
+
+public class Knight extends Actor {
+    // Properti Gerakan & Fisika
+    private int vSpeed = 0;
+    private final int GRAVITY = 1;
+    private final int JUMP_STRENGTH = -15;
+    private final int MOVE_SPEED = 5;
+
+    // Properti Animasi
+    private GreenfootImage[] idleFrames;
+    private GreenfootImage[] walkRightFrames;
+    private GreenfootImage[] walkLeftFrames;
+    private int currentFrame = 0;
+    private int animationTimer = 0;
+    private final int ANIMATION_SPEED = 8;
+
+    public Knight() {
+        // Panggil semua metode untuk memuat aset animasi
+        loadIdleAnimation();
+        loadWalkAnimation();
+        
+        // Atur gambar awal SETELAH semua frame dimuat
+        setImage(idleFrames[0]);
+    }
+
+    public void act() {
+        checkKeys();
+        applyGravity();
+        checkPlatformCollision();
+        handleEnemyCollision();
+        animate();
+    }
+
+    // === BAGIAN GERAKAN ===
+    private void checkKeys() {
+        if (Greenfoot.isKeyDown("a") || Greenfoot.isKeyDown("left")) { setLocation(getX() - MOVE_SPEED, getY()); }
+        if (Greenfoot.isKeyDown("d") || Greenfoot.isKeyDown("right")) { setLocation(getX() + MOVE_SPEED, getY()); }
+        if ((Greenfoot.isKeyDown("space") || Greenfoot.isKeyDown("w")) && onGround()) { vSpeed = JUMP_STRENGTH; }
+    }
+
+    private void applyGravity() {
+        setLocation(getX(), getY() + vSpeed);
+        vSpeed += GRAVITY;
+    }
+
+    // Di kelas Knight
+    private void checkPlatformCollision() {
+        // Deteksi 5px di bawah kaki karakter
+        int detectionOffset = getImage().getHeight() / 2 + 5;
+        Actor platform = getOneObjectAtOffset(0, detectionOffset, Platform.class);
+        
+        if (platform != null && vSpeed > 0) {
+            int platformTop = platform.getY() - platform.getImage().getHeight() / 2;
+            int charBottom = getY() + getImage().getHeight() / 2;
+            
+            if (charBottom > platformTop) {
+                vSpeed = 0;
+                // Koreksi posisi karakter
+                setLocation(getX(), getY() - (charBottom - platformTop));
+            }
+        }
+    }
+
+    public boolean onGround() {
+        // Deteksi 6px di bawah kaki karakter (sedikit lebih dalam)
+        int detectionOffset = getImage().getHeight() / 2 + 6;
+        return getOneObjectAtOffset(0, detectionOffset, Platform.class) != null;
+    }
+    
+    // === BAGIAN INTERAKSI ===
+    private void handleEnemyCollision() {
+        Musuh enemy = (Musuh) getOneObjectAtOffset(0, 0, Musuh.class);
+        if (enemy != null) {
+            if (vSpeed > 0 && getY() < enemy.getY() - 30) {
+                if (getWorld() instanceof Stage1_Desa) { ((Stage1_Desa) getWorld()).addScore(10); } 
+                else if (getWorld() instanceof Stage2_Arena) { ((Stage2_Arena) getWorld()).addScore(10); }
+                else if (getWorld() instanceof Stage3_Perbatasan) { ((Stage3_Perbatasan) getWorld()).addScore(10); }
+                getWorld().removeObject(enemy);
+                vSpeed = -8;
+            } else {
+                getWorld().showText("Anda Kalah!", getWorld().getWidth()/2, getWorld().getHeight()/2);
+                Greenfoot.delay(60);
+                if (getWorld() instanceof Stage1_Desa) { Greenfoot.setWorld(new Stage1_Desa()); } 
+                else if (getWorld() instanceof Stage2_Arena) { Greenfoot.setWorld(new Stage2_Arena()); }
+                else if (getWorld() instanceof Stage3_Perbatasan) { Greenfoot.setWorld(new Stage3_Perbatasan()); }
+            }
+        }
+    }
+
+    // === BAGIAN ANIMASI (KODE LENGKAP) ===
+    private void animate() {
+    animationTimer++;
+    if (animationTimer < ANIMATION_SPEED) return;
+    animationTimer = 0;
+    
+    boolean movingRight = Greenfoot.isKeyDown("d") || Greenfoot.isKeyDown("right");
+    boolean movingLeft = Greenfoot.isKeyDown("a") || Greenfoot.isKeyDown("left");
+    
+    if (!onGround()) {
+        // Tetap gunakan animasi idle saat di udara
+        setImage(idleFrames[0]); 
+    } 
+    else if (movingRight) {
+        currentFrame = (currentFrame + 1) % walkRightFrames.length;
+        setImage(walkRightFrames[currentFrame]);
+    } 
+    else if (movingLeft) {
+        currentFrame = (currentFrame + 1) % walkLeftFrames.length;
+        setImage(walkLeftFrames[currentFrame]);
+    } 
+    else {
+        // Hanya animasikan idle jika benar-benar diam
+        if (currentFrame >= idleFrames.length) currentFrame = 0;
+        setImage(idleFrames[currentFrame]);
+        currentFrame = (currentFrame + 1) % idleFrames.length;
+    }
+    }
+
+    private void loadIdleAnimation() {
+        idleFrames = new GreenfootImage[4];
+        int frameWidth = 48; 
+        int frameHeight = 48;
+        GreenfootImage spritesheet = new GreenfootImage("idle_knigth.png");
+        for (int i = 0; i < idleFrames.length; i++) {
+            idleFrames[i] = new GreenfootImage(frameWidth, frameHeight);
+            idleFrames[i].drawImage(spritesheet, -i * frameWidth, 0);
+        }
+    }
+
+    private void loadWalkAnimation() {
+        // Asumsikan spritesheet berjalan punya 6 frame, jika berbeda, ganti angkanya
+        int frameCount = 7; 
+        walkRightFrames = new GreenfootImage[frameCount];
+        walkLeftFrames = new GreenfootImage[frameCount];
+        int frameWidth = 48; 
+        int frameHeight = 48;
+        GreenfootImage spritesheet = new GreenfootImage("walk_knight.png"); // Pastikan nama file ini ada
+        for (int i = 0; i < walkRightFrames.length; i++) {
+            walkRightFrames[i] = new GreenfootImage(frameWidth, frameHeight);
+            walkRightFrames[i].drawImage(spritesheet, -i * frameWidth, 0);
+            walkLeftFrames[i] = new GreenfootImage(walkRightFrames[i]);
+            walkLeftFrames[i].mirrorHorizontally();
+        }
+    }
+}
