@@ -9,34 +9,65 @@ public class Knight extends Actor {
 
     // Properti Animasi
     private GreenfootImage[] idleFrames;
-    private GreenfootImage[] walkRightFrames;
-    private GreenfootImage[] walkLeftFrames;
-    private int currentFrame = 0;
+    private GreenfootImage[] walkFrames;
+    private GreenfootImage[] attackFrames;
+    private GreenfootImage[] jumpFrames;
+    
+    private int idleFrameIndex = 0;
+    private int walkFrameIndex = 0;
+    private int attackFrameIndex = 0;
+    private int jumpFrameIndex = 0;
+    
     private int animationTimer = 0;
     private final int ANIMATION_SPEED = 8;
-
+    
+    private boolean isAttacking = false;
+    private int attackCooldown= 0;
+    private String direction = "right";
+    
     public Knight() {
         // Panggil semua metode untuk memuat aset animasi
         loadIdleAnimation();
         loadWalkAnimation();
-        
-        // Atur gambar awal SETELAH semua frame dimuat
+        loadAttackAnimation();
+        loadJumpAnimation();
         setImage(idleFrames[0]);
     }
 
     public void act() {
-        checkKeys();
-        applyGravity();
-        checkPlatformCollision();
+        if(attackCooldown > 0) {
+            attackCooldown--;
+        }
+
+        handleKeys();
+        
+        if (!isAttacking) {
+            applyGravity();
+            checkPlatformCollision();
+        }
+        
         handleEnemyCollision();
         animate();
     }
 
     // === BAGIAN GERAKAN ===
-    private void checkKeys() {
-        if (Greenfoot.isKeyDown("a") || Greenfoot.isKeyDown("left")) { setLocation(getX() - MOVE_SPEED, getY()); }
-        if (Greenfoot.isKeyDown("d") || Greenfoot.isKeyDown("right")) { setLocation(getX() + MOVE_SPEED, getY()); }
-        if ((Greenfoot.isKeyDown("space") || Greenfoot.isKeyDown("w")) && onGround()) { vSpeed = JUMP_STRENGTH; }
+    private void handleKeys() {
+        if (!isAttacking) {
+            if (Greenfoot.isKeyDown("d") || Greenfoot.isKeyDown("right")) {
+                setLocation(getX() + MOVE_SPEED, getY());
+                direction = "right"; // Set arah hadap
+            }
+            if (Greenfoot.isKeyDown("a") || Greenfoot.isKeyDown("left")) {
+                setLocation(getX() - MOVE_SPEED, getY());
+                direction = "left"; // Set arah hadap
+            }
+            if ((Greenfoot.isKeyDown("space") || Greenfoot.isKeyDown("w")) && onGround()) {
+                vSpeed = JUMP_STRENGTH;
+            }
+        }
+        if (Greenfoot.isKeyDown("q") && attackCooldown == 0) {
+            attack();
+        }
     }
 
     private void applyGravity() {
@@ -68,6 +99,30 @@ public class Knight extends Actor {
         return getOneObjectAtOffset(0, detectionOffset, Platform.class) != null;
     }
     
+    private void attack() {
+        isAttacking = true;
+        attackCooldown = 30; // Jeda sebelum bisa menyerang lagi
+        attackFrameIndex = 0; // Mulai animasi serangan dari frame pertama
+    }
+    
+    private void checkAttackHit() {
+        // Cek apakah ada musuh dalam jangkauan serangan
+        int checkDistance = 40; // Jarak jangkauan serangan
+        if (direction.equals("left")) {
+            checkDistance = -checkDistance; // Arah ke kiri
+        }
+
+        Musuh enemy = (Musuh) getOneObjectAtOffset(checkDistance, 0, Musuh.class);
+        if (enemy != null) {
+            // Beri skor
+            if (getWorld() instanceof Stage1_Desa) { ((Stage1_Desa) getWorld()).addScore(15); } 
+            else if (getWorld() instanceof Stage2_Arena) { ((Stage2_Arena) getWorld()).addScore(15); }
+            else if (getWorld() instanceof Stage3_Perbatasan) { ((Stage3_Perbatasan) getWorld()).addScore(15); }
+            
+            // Hapus musuh
+            getWorld().removeObject(enemy);
+        }
+    }
     // === BAGIAN INTERAKSI ===
     private void handleEnemyCollision() {
         Musuh enemy = (Musuh) getOneObjectAtOffset(0, 0, Musuh.class);
@@ -90,38 +145,53 @@ public class Knight extends Actor {
 
     // === BAGIAN ANIMASI (KODE LENGKAP) ===
     private void animate() {
-    animationTimer++;
-    if (animationTimer < ANIMATION_SPEED) return;
-    animationTimer = 0;
-    
-    boolean movingRight = Greenfoot.isKeyDown("d") || Greenfoot.isKeyDown("right");
-    boolean movingLeft = Greenfoot.isKeyDown("a") || Greenfoot.isKeyDown("left");
-    
-    if (!onGround()) {
-        // Tetap gunakan animasi idle saat di udara
-        setImage(idleFrames[0]); 
-    } 
-    else if (movingRight) {
-        currentFrame = (currentFrame + 1) % walkRightFrames.length;
-        setImage(walkRightFrames[currentFrame]);
-    } 
-    else if (movingLeft) {
-        currentFrame = (currentFrame + 1) % walkLeftFrames.length;
-        setImage(walkLeftFrames[currentFrame]);
-    } 
-    else {
-        // Hanya animasikan idle jika benar-benar diam
-        if (currentFrame >= idleFrames.length) currentFrame = 0;
-        setImage(idleFrames[currentFrame]);
-        currentFrame = (currentFrame + 1) % idleFrames.length;
+        animationTimer++;
+        if (animationTimer < ANIMATION_SPEED) return;
+        animationTimer = 0;
+        
+        // Logika animasi baru yang lebih kompleks
+        if (isAttacking) {
+            attackFrameIndex++;
+            if (attackFrameIndex >= attackFrames.length) {
+                isAttacking = false; 
+                attackFrameIndex = 0;
+                setImage(idleFrames[0]); // Kembali ke idle setelah menyerang
+            } else {
+                GreenfootImage currentFrameGambar = attackFrames[attackFrameIndex];
+                if (direction.equals("left")) {
+                GreenfootImage gambarKiri = new GreenfootImage(currentFrameGambar);
+                gambarKiri.mirrorHorizontally();
+                setImage(gambarKiri); 
+                } else {
+                    setImage(currentFrameGambar);
+                }
+                if(attackFrameIndex == 3) { 
+                    checkAttackHit(); 
+                }
+            }
+        } else if (!onGround()) {
+            jumpFrameIndex = (jumpFrameIndex + 1) % jumpFrames.length;
+            setImage(jumpFrames[jumpFrameIndex]);
+        } else if (Greenfoot.isKeyDown("d") || Greenfoot.isKeyDown("right")) {
+            walkFrameIndex = (walkFrameIndex + 1) % walkFrames.length;
+            setImage(walkFrames[walkFrameIndex]);
+        } else if (Greenfoot.isKeyDown("a") || Greenfoot.isKeyDown("left")) {
+            walkFrameIndex = (walkFrameIndex + 1) % walkFrames.length;
+            GreenfootImage leftImage = new GreenfootImage(walkFrames[walkFrameIndex]);
+            leftImage.mirrorHorizontally();
+            setImage(leftImage);
+        } else {
+            idleFrameIndex = (idleFrameIndex + 1) % idleFrames.length;
+            setImage(idleFrames[idleFrameIndex]);
+        }
     }
-    }
-
+    
+    
     private void loadIdleAnimation() {
         idleFrames = new GreenfootImage[4];
         int frameWidth = 100; 
         int frameHeight = 64;
-        GreenfootImage spritesheet = new GreenfootImage("idle_knigth.png");
+        GreenfootImage spritesheet = new GreenfootImage("Idle_KG_2.png");
         for (int i = 0; i < idleFrames.length; i++) {
             idleFrames[i] = new GreenfootImage(frameWidth, frameHeight);
             idleFrames[i].drawImage(spritesheet, -i * frameWidth, 0);
@@ -129,18 +199,43 @@ public class Knight extends Actor {
     }
 
     private void loadWalkAnimation() {
-        // Asumsikan spritesheet berjalan punya 6 frame, jika berbeda, ganti angkanya
-        int frameCount = 7; 
-        walkRightFrames = new GreenfootImage[frameCount];
-        walkLeftFrames = new GreenfootImage[frameCount];
-        int frameWidth = 100; 
+        int frameCount = 7;
+        walkFrames= new GreenfootImage[frameCount];
+        int frameWidth = 100;
         int frameHeight = 64;
-        GreenfootImage spritesheet = new GreenfootImage("walk_knight.png"); // Pastikan nama file ini ada
-        for (int i = 0; i < walkRightFrames.length; i++) {
-            walkRightFrames[i] = new GreenfootImage(frameWidth, frameHeight);
-            walkRightFrames[i].drawImage(spritesheet, -i * frameWidth, 0);
-            walkLeftFrames[i] = new GreenfootImage(walkRightFrames[i]);
-            walkLeftFrames[i].mirrorHorizontally();
+        GreenfootImage spritesheet = new GreenfootImage("Walking_KG_2.png");
+        
+        for (int i = 0; i < walkFrames.length; i++) {
+            walkFrames[i] = new GreenfootImage(frameWidth, frameHeight);
+            walkFrames[i].drawImage(spritesheet, -i * frameWidth, 0);
+        }
+    }
+    
+    private void loadJumpAnimation() {
+        int frameCount = 6; // Spritesheet lompat punya 6 frame
+        jumpFrames = new GreenfootImage[frameCount];
+        int frameWidth = 100;  // Sesuaikan dengan ukuran frame Anda
+        int frameHeight = 64; // Sesuaikan dengan ukuran frame Anda
+        
+        GreenfootImage spritesheet = new GreenfootImage("Jump_KG_2.png");
+        
+        for (int i = 0; i < jumpFrames.length; i++) {
+            jumpFrames[i] = new GreenfootImage(frameWidth, frameHeight);
+            jumpFrames[i].drawImage(spritesheet, -i * frameWidth, 0);
+        }
+    }
+    
+    private void loadAttackAnimation() {
+        int frameCount = 6; // Spritesheet serangan punya 6 frame
+        attackFrames = new GreenfootImage[frameCount];
+        int frameWidth = 100;  // Sesuaikan dengan ukuran frame Anda
+        int frameHeight = 64; // Sesuaikan dengan ukuran frame Anda
+        
+        GreenfootImage spritesheet = new GreenfootImage("Attack_KG_1.png");
+        
+        for (int i = 0; i < attackFrames.length; i++) {
+            attackFrames[i] = new GreenfootImage(frameWidth, frameHeight);
+            attackFrames[i].drawImage(spritesheet, -i * frameWidth, 0);
         }
     }
 }
