@@ -27,8 +27,15 @@ public class Stage1_Desa extends World {
     addObject(new Platform(1024, 20), LEBAR / 2, 545);
     
     // Pijakan di atas atap gedung kiri (di Y=340)
-    addObject(new Platform(300, 20), 250, 490);
-    
+    addObject(new Platform(160, 20), 400, 390);
+    // Pijakan di atas tenda
+    addObject(new Platform(190, 20), 570, 470);
+    // Pijakan di atas atap rumah kanan
+    addObject(new Platform(275, 20), 885, 388);
+     // Pijakan di atas atap rumah kiri
+    addObject(new Platform(300, 20), 170, 280);
+    // Pijakan di atas balkon rumah kiri
+    addObject(new Platform(50, 20), 350, 330);
     // MENEMPATKAN AKTOR
     // Tempatkan Knight di awal.
     // Kita taruh di Y=300 agar ia jatuh sedikit ke atas platform atap (di Y=340)
@@ -37,9 +44,10 @@ public class Stage1_Desa extends World {
     
     // Tempatkan beberapa musuh
     // Kita naikkan juga posisi musuh agar mereka berdiri di atas platform
-    addObject(new Musuh(), 600, 360);
-    addObject(new Musuh(), 800, 350);
-    
+    addObject(new Musuh(), 150, 250);
+    addObject(new Musuh(), 900, 355);
+    addObject(new Musuh(), 350, 515);
+    addObject(new Musuh(), 750, 515);
     // Tempatkan tujuan akhir
     addObject(new Portal(), 980, 350);
     }
