@@ -1,39 +1,52 @@
 import greenfoot.*;
 
 public class LayarCerita extends World {
+    private GreenfootSound ceritaMusic;
+    private GreenfootSound clickSound;
+    private int delay = 30;
 
     public LayarCerita() {
         super(1024, 576, 1);
-        
-        // Latar belakang hitam polos
+
         getBackground().setColor(Color.BLACK);
         getBackground().fill();
-        
-        // Tampilkan teks cerita
+
         tampilkanTeks();
+
+        ceritaMusic = new GreenfootSound("theme3.wav");
+        ceritaMusic.setVolume(70);
+        ceritaMusic.playLoop();
+
+        clickSound = new GreenfootSound("click.wav");
+        clickSound.setVolume(80); // Bisa diatur sesuai selera
     }
-    
+
     private void tampilkanTeks() {
-        // Gunakan \n untuk membuat baris baru
-        String cerita = "Di negeri yang mulai redup oleh bayang-bayang kelam...\n\n" +
-                        "Seorang ksatria bernama Elara memulai perjalanannya.\n\n" +
-                        "Dengan tekad sekeras baja, ia melangkah maju,\n" +
-                        "mencari ujian untuk membuktikan kekuatannya\n" +
-                        "dan mengembalikan cahaya ke seluruh penjuru negeri.";
-                        
-        // Tampilkan cerita di tengah layar
-        // (Greenfoot tidak mendukung multiline di showText, jadi kita tampilkan manual)
         showText("Di negeri yang mulai redup oleh bayang-bayang kelam...", getWidth()/2, 200);
         showText("Seorang ksatria bernama Elara memulai perjalanannya.", getWidth()/2, 250);
         showText("Dengan tekad sekeras baja, ia melangkah maju...", getWidth()/2, 300);
-        
-        showText("Klik di mana saja untuk melanjutkan.", getWidth()/2, 500);
+        showText("Klik atau tekan tombol apa pun untuk melanjutkan.", getWidth()/2, 500);
     }
-    
+
     public void act() {
-        // Jika pemain mengklik di mana saja, mulai Stage 1
-        if (Greenfoot.mouseClicked(null)) {
+        if (delay > 0) {
+            delay--;
+            return;
+        }
+
+        if (Greenfoot.mouseClicked(null) || Greenfoot.getKey() != null) {
+            clickSound.play();      // Suara klik
+            ceritaMusic.stop();     // Hentikan musik
+            Greenfoot.delay(10);    // Biarkan suara klik terdengar
             Greenfoot.setWorld(new Stage1_Desa());
         }
+    }
+
+    public void started() {
+        ceritaMusic.playLoop();
+    }
+
+    public void stopped() {
+        ceritaMusic.pause();
     }
 }
