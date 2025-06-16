@@ -1,374 +1,366 @@
-import greenfoot.*;
+import greenfoot.*; 
 
-public class Knight extends Actor {
-    // Properti Gerakan & Fisika
-    private boolean isInvincible = false; // Status kebal
-    private int invincibleTimer = 0;      // Timer untuk durasi kebal
-    private int vSpeed = 0;
-    private final int GRAVITY = 1;
-    private final int JUMP_STRENGTH = -15;
-    private final int MOVE_SPEED = 5; // Kecepatan bergerak horizontal
-    // FEET_Y_OFFSET diatur ke 28 untuk deteksi kaki yang lebih akurat
-    private final int FEET_Y_OFFSET = 28;
+public class Knight extends Actor { 
+    // Properti Gerakan & Fisika 
+    private boolean isInvincible = false; // Status kebal 
+    private int invincibleTimer = 0;      // Timer untuk durasi kebal 
+    private int vSpeed = 0; 
+    private final int GRAVITY = 1; 
+    private final int JUMP_STRENGTH = -15; 
+    private final int MOVE_SPEED = 5; // Kecepatan bergerak horizontal 
+    // FEET_Y_OFFSET diatur ke 28 untuk deteksi kaki yang lebih akurat 
+    private final int FEET_Y_OFFSET = 28; 
 
-    // Properti Animasi
-    private GreenfootImage[] idleFrames;
-    private GreenfootImage[] walkFrames;
-    private GreenfootImage[] attackFrames;
-    private GreenfootImage[] jumpFrames;
+    // Properti Animasi 
+    private GreenfootImage[] idleFrames; 
+    private GreenfootImage[] walkFrames; 
+    private GreenfootImage[] attackFrames; 
+    private GreenfootImage[] jumpFrames; 
 
-    private int idleFrameIndex = 0;
-    private int walkFrameIndex = 0;
-    private int attackFrameIndex = 0;
-    private int jumpFrameIndex = 0;
+    private int idleFrameIndex = 0; 
+    private int walkFrameIndex = 0; 
+    private int attackFrameIndex = 0; 
+    private int jumpFrameIndex = 0; 
 
-    private int animationTimer = 0;
-    private final int ANIMATION_SPEED = 8;
+    private int animationTimer = 0; 
+    private final int ANIMATION_SPEED = 8; 
 
-    private boolean isAttacking = false;
-    private int attackCooldown= 0; // Cooldown untuk serangan
-    private String direction = "right"; // Arah hadap karakter
+    private boolean isAttacking = false; 
+    private int attackCooldown= 0; // Cooldown untuk serangan 
+    private String direction = "right"; // Arah hadap karakter 
 
-    private int attackPower = 50; // Damage per hit
+    private int attackPower = 50; // Damage per hit 
 
-    // >>> PROPERTI SUARA TAMBAHAN <<<
-    private GreenfootSound runSound = new GreenfootSound("run.wav");
-    private boolean isRunSoundPlaying = false; // Flag untuk mengelola suara lari
-    // Tambahkan GreenfootSound untuk suara "game over"
-    private GreenfootSound gameOverSound = new GreenfootSound("over.wav"); // Deklarasi suara over.wav
+    // >>> PROPERTI SUARA TAMBAHAN <<< 
+    private GreenfootSound runSound = new GreenfootSound("run.wav"); 
+    private boolean isRunSoundPlaying = false; // Flag untuk mengelola suara lari 
+     
+    private GreenfootSound gameOverSound = new GreenfootSound("over.wav");  
+     
+    public Knight() { 
+        // Panggil semua metode untuk memuat aset animasi 
+        loadIdleAnimation(); 
+        loadWalkAnimation(); 
+        loadAttackAnimation(); 
+        loadJumpAnimation(); 
+        setImage(idleFrames[0]); // Atur gambar awal 
+    } 
 
-    public Knight() {
-        // Panggil semua metode untuk memuat aset animasi
-        loadIdleAnimation();
-        loadWalkAnimation();
-        loadAttackAnimation();
-        loadJumpAnimation();
-        setImage(idleFrames[0]); // Atur gambar awal
-    }
+    public void act() { 
+        // Kurangi cooldown serangan setiap act cycle 
+        if(attackCooldown > 0) { 
+            attackCooldown--; 
+        } 
 
-    public void act() {
-        // Kurangi cooldown serangan setiap act cycle
-        if(attackCooldown > 0) {
-            attackCooldown--;
-        }
+        handleInput(); // Tangani semua input dari pemain (gerakan dan lompat, termasuk kolisi horizontal) 
+        applyGravity(); // Terapkan gravitasi pada Knight 
+        resolveVerticalCollisions(); // Cek dan koreksi tabrakan vertikal dengan platform (atas dan bawah) 
 
-        handleInput(); // Tangani semua input dari pemain (gerakan dan lompat, termasuk kolisi horizontal)
-        applyGravity(); // Terapkan gravitasi pada Knight
-        resolveVerticalCollisions(); // Cek dan koreksi tabrakan vertikal dengan platform (atas dan bawah)
+        handleEnemyCollision(); // Cek tabrakan dengan musuh 
+        animate(); // Update animasi Knight 
 
-        handleEnemyCollision(); // Cek tabrakan dengan musuh
-        animate(); // Update animasi Knight
+        if (isInvincible) { 
+            invincibleTimer--; 
+            // Efek berkedip saat kebal 
+            if (invincibleTimer % 10 < 5) { 
+                getImage().setTransparency(100); // Setengah transparan 
+            } else { 
+                getImage().setTransparency(255); // Kembali normal 
+            } 
 
-        if (isInvincible) {
-            invincibleTimer--;
-            // Efek berkedip saat kebal
-            if (invincibleTimer % 10 < 5) {
-                getImage().setTransparency(100); // Setengah transparan
-            } else {
-                getImage().setTransparency(255); // Kembali normal
-            }
+            // Jika timer habis, kembali normal 
+            if (invincibleTimer <= 0) { 
+                isInvincible = false; 
+                getImage().setTransparency(255); 
+            } 
+        } 
+    } 
 
-            // Jika timer habis, kembali normal
-            if (invincibleTimer <= 0) {
-                isInvincible = false;
-                getImage().setTransparency(255);
-            }
-        }
-    }
+    // >>> METODE BARU UNTUK MENGHENTIKAN SEMUA SUARA LOOPING DARI KNIGHT <<< 
+    // Ini penting dipanggil saat game over atau pindah stage 
+    public void stopAllSounds() { 
+        if (runSound != null && isRunSoundPlaying) { 
+            runSound.stop(); 
+            isRunSoundPlaying = false; 
+        } 
+        // Jika ada suara looping lain dari Knight, hentikan juga di sini 
+    } 
 
-    // >>> METODE UNTUK MENGHENTIKAN SEMUA SUARA LOOPING DARI KNIGHT <<<
-    // Ini penting dipanggil saat game over atau pindah stage
-    public void stopAllSounds() {
-        if (runSound != null && isRunSoundPlaying) {
-            runSound.stop();
-            isRunSoundPlaying = false;
-        }
-        // Jika ada suara looping lain dari Knight, hentikan juga di sini
-        // Misalnya, jika ada suara kebal yang looping, dll.
-    }
+    // === BAGIAN GERAKAN DAN INPUT === 
+    private void handleInput() { 
+        // Jika sedang menyerang, Knight tidak bisa bergerak atau melompat 
+        if (!isAttacking) { 
+            boolean movingHorizontally = false; 
+            int nextX = getX(); // Inisialisasi posisi X potensial 
 
-    // === BAGIAN GERAKAN DAN INPUT ===
-    private void handleInput() {
-        // Jika sedang menyerang, Knight tidak bisa bergerak atau melompat
-        if (!isAttacking) {
-            boolean movingHorizontally = false;
-            int nextX = getX(); // Inisialisasi posisi X potensial
+            if (Greenfoot.isKeyDown("d") || Greenfoot.isKeyDown("right")) { 
+                nextX += MOVE_SPEED; 
+                direction = "right"; 
+                movingHorizontally = true; 
+            } else if (Greenfoot.isKeyDown("a") || Greenfoot.isKeyDown("left")) { 
+                nextX -= MOVE_SPEED; 
+                direction = "left"; 
+                movingHorizontally = true; 
+            } 
 
-            if (Greenfoot.isKeyDown("d") || Greenfoot.isKeyDown("right")) {
-                nextX += MOVE_SPEED;
-                direction = "right";
-                movingHorizontally = true;
-            } else if (Greenfoot.isKeyDown("a") || Greenfoot.isKeyDown("left")) {
-                nextX -= MOVE_SPEED;
-                direction = "left";
-                movingHorizontally = true;
-            }
+            // Menerapkan gerakan horizontal dan memeriksa kolisi dinding secara langsung 
+            if (movingHorizontally) { 
+                // >>> MULAI SUARA LARI <<< 
+                if (!isRunSoundPlaying) { 
+                    runSound.playLoop(); 
+                    isRunSoundPlaying = true; 
+                } 
 
-            // Menerapkan gerakan horizontal dan memeriksa kolisi dinding secara langsung
-            if (movingHorizontally) {
-                // >>> MULAI SUARA LARI <<<
-                if (!isRunSoundPlaying) {
-                    runSound.playLoop();
-                    isRunSoundPlaying = true;
-                }
+                // Simpan posisi saat ini untuk potensi pemulihan 
+                int originalX = getX(); 
+                // Coba pindah ke posisi X baru 
+                setLocation(nextX, getY()); 
 
-                // Simpan posisi saat ini untuk potensi pemulihan
-                int originalX = getX();
-                // Coba pindah ke posisi X baru
-                setLocation(nextX, getY());
+                // Periksa apakah ada kolisi dinding di posisi baru ini 
+                Actor wall = checkWallCollision(); 
+                if (wall != null) { 
+                    // Jika ada kolisi, posisikan Knight dengan tepat di samping dinding 
+                    if (direction.equals("right")) { 
+                        int wallLeftEdge = wall.getX() - (wall.getImage().getWidth() / 2); 
+                        setLocation(wallLeftEdge - (getImage().getWidth() / 2), getY()); 
+                    } else if (direction.equals("left")) { 
+                        int wallRightEdge = wall.getX() + (wall.getImage().getWidth() / 2); 
+                        setLocation(wallRightEdge + (getImage().getWidth() / 2), getY()); 
+                    } 
+                } 
+            } else { 
+                // >>> HENTIKAN SUARA LARI JIKA TIDAK BERGERAK HORIZONTAL <<< 
+                if (isRunSoundPlaying) { 
+                    runSound.stop(); 
+                    isRunSoundPlaying = false; 
+                } 
+                // Reset index animasi jalan jika tidak bergerak secara horizontal 
+                walkFrameIndex = 0; 
+            } 
 
-                // Periksa apakah ada kolisi dinding di posisi baru ini
-                Actor wall = checkWallCollision();
-                if (wall != null) {
-                    // Jika ada kolisi, posisikan Knight dengan tepat di samping dinding
-                    if (direction.equals("right")) {
-                        int wallLeftEdge = wall.getX() - (wall.getImage().getWidth() / 2);
-                        setLocation(wallLeftEdge - (getImage().getWidth() / 2), getY());
-                    } else if (direction.equals("left")) {
-                        int wallRightEdge = wall.getX() + (wall.getImage().getWidth() / 2);
-                        setLocation(wallRightEdge + (getImage().getWidth() / 2), getY());
-                    }
-                }
-            } else {
-                // >>> HENTIKAN SUARA LARI JIKA TIDAK BERGERAK HORIZONTAL <<<
-                if (isRunSoundPlaying) {
-                    runSound.stop();
-                    isRunSoundPlaying = false;
-                }
-                // Reset index animasi jalan jika tidak bergerak secara horizontal
-                walkFrameIndex = 0;
-            }
+            // Hanya bisa melompat jika di tanah 
+            if ((Greenfoot.isKeyDown("space") || Greenfoot.isKeyDown("w")) && onGround() && vSpeed >= 0) { 
+                vSpeed = JUMP_STRENGTH; 
+                Greenfoot.playSound("jump.wav"); // Suara jump.wav 
+                // >>> HENTIKAN SUARA LARI SAAT MELOMPAT <<< 
+                if (isRunSoundPlaying) { 
+                    runSound.stop(); 
+                    isRunSoundPlaying = false; 
+                } 
+            } 
+        } 
 
-            // Hanya bisa melompat jika di tanah
-            // vSpeed >= 0 memastikan dia tidak bisa double jump jika belum mendarat
-            if ((Greenfoot.isKeyDown("space") || Greenfoot.isKeyDown("w")) && onGround() && vSpeed >= 0) {
-                vSpeed = JUMP_STRENGTH;
-                Greenfoot.playSound("jump.wav"); // Suara jump.wav
-                // >>> HENTIKAN SUARA LARI SAAT MELOMPAT <<<
-                if (isRunSoundPlaying) {
-                    runSound.stop();
-                    isRunSoundPlaying = false;
-                }
-            }
-        }
+        // Serangan bisa dilakukan kapan saja, asalkan tidak dalam cooldown 
+        if (Greenfoot.isKeyDown("q") && attackCooldown == 0) { 
+            attack(); 
+        } 
+    } 
 
-        // Serangan bisa dilakukan kapan saja, asalkan tidak dalam cooldown
-        if (Greenfoot.isKeyDown("q") && attackCooldown == 0) {
-            attack();
-        }
-    }
+    // --- METODE MENERAPKAN GRAVITASI --- 
+    private void applyGravity() { 
+        vSpeed += GRAVITY; 
+        if (vSpeed > 10) { 
+            vSpeed = 10; 
+        } 
+        setLocation(getX(), getY() + vSpeed); 
+    } 
 
-    // --- METODE MENERAPKAN GRAVITASI ---
-    private void applyGravity() {
-        vSpeed += GRAVITY;
-        if (vSpeed > 10) {
-            vSpeed = 10;
-        }
-        setLocation(getX(), getY() + vSpeed);
-    }
+    // --- METODE RESOLUSI TABRAKAN VERTIKAL --- 
+    private void resolveVerticalCollisions() { 
+        Actor platformLanding = getOneObjectAtOffset(0, FEET_Y_OFFSET, Platform.class); 
 
-    // --- METODE RESOLUSI TABRAKAN VERTIKAL ---
-    private void resolveVerticalCollisions() {
-        Actor platformLanding = getOneObjectAtOffset(0, FEET_Y_OFFSET, Platform.class);
+        if (platformLanding != null && vSpeed > 0) { 
+            vSpeed = 0; 
+            int platformTop = platformLanding.getY() - platformLanding.getImage().getHeight() / 2; 
+            setLocation(getX(), platformTop - FEET_Y_OFFSET); 
+            jumpFrameIndex = 0; 
 
-        if (platformLanding != null && vSpeed > 0) {
-            vSpeed = 0;
-            int platformTop = platformLanding.getY() - platformLanding.getImage().getHeight() / 2;
-            setLocation(getX(), platformTop - FEET_Y_OFFSET);
-            jumpFrameIndex = 0;
+            // Jika mendarat saat tombol gerak ditekan, lanjutkan suara lari 
+            if (!isAttacking && (Greenfoot.isKeyDown("d") || Greenfoot.isKeyDown("right") || Greenfoot.isKeyDown("a") || Greenfoot.isKeyDown("left"))) { 
+                if (!isRunSoundPlaying) { 
+                    runSound.playLoop(); 
+                    isRunSoundPlaying = true; 
+                } 
+            } 
+        } 
 
-            // Jika mendarat saat tombol gerak ditekan, lanjutkan suara lari
-            if (!isAttacking && (Greenfoot.isKeyDown("d") || Greenfoot.isKeyDown("right") || Greenfoot.isKeyDown("a") || Greenfoot.isKeyDown("left"))) {
-                if (!isRunSoundPlaying) {
-                    runSound.playLoop();
-                    isRunSoundPlaying = true;
-                }
-            }
-        }
+        Actor platformHittingHead = getOneObjectAtOffset(0, -getImage().getHeight() / 2, Platform.class); 
+        if (platformHittingHead != null && vSpeed < 0) { 
+            vSpeed = 0; 
+            int platformBottom = platformHittingHead.getY() + (platformHittingHead.getImage().getHeight() / 2); 
+            setLocation(getX(), platformBottom + (getImage().getHeight() / 2)); 
+        } 
+    } 
 
-        Actor platformHittingHead = getOneObjectAtOffset(0, -getImage().getHeight() / 2, Platform.class);
-        if (platformHittingHead != null && vSpeed < 0) {
-            vSpeed = 0;
-            int platformBottom = platformHittingHead.getY() + (platformHittingHead.getImage().getHeight() / 2);
-            setLocation(getX(), platformBottom + (getImage().getHeight() / 2));
-        }
-    }
+    // --- METODE DETEKSI TABRAKAN DINDING HORIZONTAL --- 
+    private Actor checkWallCollision() { 
+        int horizontalCheckOffset = (getImage().getWidth() / 2) - 2; 
+        Actor wall = null; 
+        if (direction.equals("right")) { 
+            wall = getOneObjectAtOffset(horizontalCheckOffset, 0, Platform.class); 
+        } else if (direction.equals("left")) { 
+            wall = getOneObjectAtOffset(-horizontalCheckOffset, 0, Platform.class); 
+        } 
+        return wall; 
+    } 
 
-    // --- METODE DETEKSI TABRAKAN DINDING HORIZONTAL ---
-    private Actor checkWallCollision() {
-        int horizontalCheckOffset = (getImage().getWidth() / 2) - 2;
-        Actor wall = null;
-        if (direction.equals("right")) {
-            wall = getOneObjectAtOffset(horizontalCheckOffset, 0, Platform.class);
-        } else if (direction.equals("left")) {
-            wall = getOneObjectAtOffset(-horizontalCheckOffset, 0, Platform.class);
-        }
-        return wall;
-    }
+    private void attack() { 
+        isAttacking = true; 
+        attackCooldown = 30; 
+        attackFrameIndex = 0; 
+        Greenfoot.playSound("knife.wav"); // >>> SUARA PISAU <<< 
+        // Hentikan suara lari saat menyerang (karena Knight mungkin berhenti bergerak) 
+        if (isRunSoundPlaying) { 
+            runSound.stop(); 
+            isRunSoundPlaying = false; 
+        } 
+    } 
 
-    private void attack() {
-        isAttacking = true;
-        attackCooldown = 30;
-        attackFrameIndex = 0;
-        Greenfoot.playSound("knife.wav"); // >>> SUARA PISAU <<<
-        // Hentikan suara lari saat menyerang (karena Knight mungkin berhenti bergerak)
-        if (isRunSoundPlaying) {
-            runSound.stop();
-            isRunSoundPlaying = false;
-        }
-    }
+    // --- METODE ON GROUND (CEK APAKAH KARAKTER DI ATAS TANAH) --- 
+    public boolean onGround() { 
+        Actor platform = getOneObjectAtOffset(0, FEET_Y_OFFSET + 1, Platform.class); 
+        return platform != null; 
+    } 
 
-    // --- METODE ON GROUND (CEK APAKAH KARAKTER DI ATAS TANAH) ---
-    public boolean onGround() {
-        Actor platform = getOneObjectAtOffset(0, FEET_Y_OFFSET + 1, Platform.class);
-        return platform != null;
-    }
+    private void checkAttackHit() { 
+        int checkDistance = 40; 
+        if (direction.equals("left")) { 
+            checkDistance = -checkDistance; 
+        } 
 
-    private void checkAttackHit() {
-        int checkDistance = 40;
-        if (direction.equals("left")) {
-            checkDistance = -checkDistance;
-        }
+        Musuh enemy = (Musuh) getOneObjectAtOffset(checkDistance, 0, Musuh.class); 
+        if (enemy != null) { 
+            enemy.takeDamage(attackPower); // attackPower didefinisikan sebagai 50 
+        } 
+    } 
 
-        Musuh enemy = (Musuh) getOneObjectAtOffset(checkDistance, 0, Musuh.class);
-        if (enemy != null) {
-            enemy.takeDamage(attackPower); // attackPower didefinisikan sebagai 50
-        }
-    }
+    // === BAGIAN INTERAKSI DENGAN MUSUH === 
+    private void handleEnemyCollision() { 
+        Musuh enemy = (Musuh) getOneObjectAtOffset(0, 0, Musuh.class); 
+        if (enemy != null) { 
+            // Knight menginjak musuh dari atas (bunuh musuh) 
+            if (vSpeed > 0 && getY() < enemy.getY() - (enemy.getImage().getHeight() / 2) + 10) { 
+                enemy.takeDamage(100); // Asumsi 100 adalah damage yang fatal 
 
-    // === BAGIAN INTERAKSI DENGAN MUSUH ===
-    private void handleEnemyCollision() {
-        Musuh enemy = (Musuh) getOneObjectAtOffset(0, 0, Musuh.class);
-        if (enemy != null) {
-            // Knight menginjak musuh dari atas (bunuh musuh)
-            if (vSpeed > 0 && getY() < enemy.getY() - (enemy.getImage().getHeight() / 2) + 10) {
-                enemy.takeDamage(100); // Asumsi 100 adalah damage yang fatal
+                // Tambahkan skor berdasarkan stage 
+                if (getWorld() instanceof Stage1_Desa) { ((Stage1_Desa) getWorld()).addScore(10); } 
+                else if (getWorld() instanceof Stage2_Arena) { ((Stage2_Arena) getWorld()).addScore(10); } 
+                else if (getWorld() instanceof Stage3_Perbatasan) { ((Stage3_Perbatasan) getWorld()).addScore(10); } 
 
-                // Tambahkan skor berdasarkan stage
-                if (getWorld() instanceof Stage1_Desa) { ((Stage1_Desa) getWorld()).addScore(10); }
-                else if (getWorld() instanceof Stage2_Arena) { ((Stage2_Arena) getWorld()).addScore(10); }
-                else if (getWorld() instanceof Stage3_Perbatasan) { ((Stage3_Perbatasan) getWorld()).addScore(10); }
+                vSpeed = -8; // Knight terpental sedikit ke atas setelah menginjak 
+            } else if (!isInvincible) { 
+                // Aktifkan mode kebal 
+                isInvincible = true; 
+                invincibleTimer = 60; // Durasi kebal selama 1 detik (60fps * 1) 
 
-                vSpeed = -8; // Knight terpental sedikit ke atas setelah menginjak
-            } else if (!isInvincible) {
-                // Aktifkan mode kebal
-                isInvincible = true;
-                invincibleTimer = 60; // Durasi kebal selama 1 detik (60fps * 1)
-
-                // Panggil metode playerDied() dari world untuk mengurangi nyawa
-                // Pastikan kelas World Anda memiliki metode playerDied() dan extends GameWorld atau memiliki casting yang benar
-                if (getWorld() instanceof GameWorld) { // Cek tipe casting
-                    ((GameWorld) getWorld()).playerDied();
-                    // >>> MAIN KAN SUARA GAME OVER KETIKA NYAWA BERKURANG / KALAH <<<
-                    // Ini akan bermain setiap kali Knight terkena damage dan tidak kebal
-                    // Jika playerDied() berarti game over, ini adalah tempat yang tepat.
-                    // Jika playerDied() hanya mengurangi nyawa, Anda mungkin ingin memindahkan
-                    // Greenfoot.playSound("over.wav") ke dalam playerDied() atau kondisi game over di World.
-                    // Untuk saat ini, kita anggap ini adalah pemicu langsung untuk suara "game over".
+                // Panggil metode playerDied() dari world untuk mengurangi nyawa 
+                if (getWorld() instanceof GameWorld) { // Cek tipe casting 
+                    ((GameWorld) getWorld()).playerDied(); 
+                    // >>> KODE TAMBAHAN: MAINKAN SUARA GAME OVER <<<
                     gameOverSound.play(); // Mainkan suara over.wav
-                } else {
-                    System.err.println("Error: Current World is not an instance of GameWorld. Cannot call playerDied().");
-                }
+                } else { 
+                    System.err.println("Error: Current World is not an instance of GameWorld. Cannot call playerDied()."); 
+                } 
 
-                // >>> PASTIKAN SUARA LARI BERHENTI SAAT TERKENA DAMAGE/KEBAL <<<
-                if (isRunSoundPlaying) {
-                    runSound.stop();
-                    isRunSoundPlaying = false;
-                }
-            }
-        }
-    }
+                // >>> PASTIKAN SUARA LARI BERHENTI SAAT TERKENA DAMAGE/KEBAL <<< 
+                if (isRunSoundPlaying) { 
+                    runSound.stop(); 
+                    isRunSoundPlaying = false; 
+                } 
+            } 
+        } 
+    } 
 
-    // === BAGIAN ANIMASI ===
-    private void animate() {
-        animationTimer++;
-        if (animationTimer < ANIMATION_SPEED) {
-            return;
-        }
-        animationTimer = 0;
+    // === BAGIAN ANIMASI === 
+    private void animate() { 
+        animationTimer++; 
+        if (animationTimer < ANIMATION_SPEED) { 
+            return; 
+        } 
+        animationTimer = 0; 
 
-        GreenfootImage frameToDisplay;
+        GreenfootImage frameToDisplay; 
 
-        if (isAttacking) {
-            attackFrameIndex++;
-            if (attackFrameIndex >= attackFrames.length) {
-                isAttacking = false;
-                attackFrameIndex = 0;
-                frameToDisplay = idleFrames[0];
-            } else {
-                frameToDisplay = attackFrames[attackFrameIndex];
-                if (attackFrameIndex == 3) {
-                    checkAttackHit();
-                }
-            }
-        } else if (!onGround()) {
-            jumpFrameIndex = (jumpFrameIndex + 1) % jumpFrames.length;
-            frameToDisplay = jumpFrames[jumpFrameIndex];
-        } else if (Greenfoot.isKeyDown("d") || Greenfoot.isKeyDown("right")) {
-            walkFrameIndex = (walkFrameIndex + 1) % walkFrames.length;
-            frameToDisplay = walkFrames[walkFrameIndex];
-        } else if (Greenfoot.isKeyDown("a") || Greenfoot.isKeyDown("left")) {
-            walkFrameIndex = (walkFrameIndex + 1) % walkFrames.length;
-            frameToDisplay = walkFrames[walkFrameIndex];
-        } else {
-            idleFrameIndex = (idleFrameIndex + 1) % idleFrames.length;
-            frameToDisplay = idleFrames[idleFrameIndex];
-        }
+        if (isAttacking) { 
+            attackFrameIndex++; 
+            if (attackFrameIndex >= attackFrames.length) { 
+                isAttacking = false; 
+                attackFrameIndex = 0; 
+                frameToDisplay = idleFrames[0]; 
+            } else { 
+                frameToDisplay = attackFrames[attackFrameIndex]; 
+                if (attackFrameIndex == 3) { 
+                    checkAttackHit(); 
+                } 
+            } 
+        } else if (!onGround()) { 
+            jumpFrameIndex = (jumpFrameIndex + 1) % jumpFrames.length; 
+            frameToDisplay = jumpFrames[jumpFrameIndex]; 
+        } else if (Greenfoot.isKeyDown("d") || Greenfoot.isKeyDown("right")) { 
+            walkFrameIndex = (walkFrameIndex + 1) % walkFrames.length; 
+            frameToDisplay = walkFrames[walkFrameIndex]; 
+        } else if (Greenfoot.isKeyDown("a") || Greenfoot.isKeyDown("left")) { 
+            walkFrameIndex = (walkFrameIndex + 1) % walkFrames.length; 
+            frameToDisplay = walkFrames[walkFrameIndex]; 
+        } else { 
+            idleFrameIndex = (idleFrameIndex + 1) % idleFrames.length; 
+            frameToDisplay = idleFrames[idleFrameIndex]; 
+        } 
 
-        if (direction.equals("left") && !isAttacking) {
-            GreenfootImage mirroredImage = new GreenfootImage(frameToDisplay);
-            mirroredImage.mirrorHorizontally();
-            setImage(mirroredImage);
-        } else {
-            setImage(frameToDisplay);
-        }
-    }
+        if (direction.equals("left")) { 
+            GreenfootImage mirroredImage = new GreenfootImage(frameToDisplay); 
+            mirroredImage.mirrorHorizontally(); 
+            setImage(mirroredImage); 
+        } else { 
+            setImage(frameToDisplay); 
+        } 
+    } 
 
-    // === BAGIAN LOAD ANIMASI (MEMUAT SPRITESHEET MENJADI ARRAY GAMBAR) ===
-    private void loadIdleAnimation() {
-        idleFrames = new GreenfootImage[4];
-        int frameWidth = 100;
-        int frameHeight = 64;
-        GreenfootImage spritesheet = new GreenfootImage("Idle_KG_2.png");
-        for (int i = 0; i < idleFrames.length; i++) {
-            idleFrames[i] = new GreenfootImage(frameWidth, frameHeight);
-            idleFrames[i].drawImage(spritesheet, -i * frameWidth, 0);
-        }
-    }
+    // === BAGIAN LOAD ANIMASI (MEMUAT SPRITESHEET MENJADI ARRAY GAMBAR) === 
+    private void loadIdleAnimation() { 
+        idleFrames = new GreenfootImage[4]; 
+        int frameWidth = 100; 
+        int frameHeight = 64; 
+        GreenfootImage spritesheet = new GreenfootImage("Idle_KG_2.png"); 
+        for (int i = 0; i < idleFrames.length; i++) { 
+            idleFrames[i] = new GreenfootImage(frameWidth, frameHeight); 
+            idleFrames[i].drawImage(spritesheet, -i * frameWidth, 0); 
+        } 
+    } 
 
-    private void loadWalkAnimation() {
-        int frameCount = 7;
-        walkFrames= new GreenfootImage[frameCount];
-        int frameWidth = 100;
-        int frameHeight = 64;
-        GreenfootImage spritesheet = new GreenfootImage("Walking_KG_2.png");
-        for (int i = 0; i < walkFrames.length; i++) {
-            walkFrames[i] = new GreenfootImage(frameWidth, frameHeight);
-            walkFrames[i].drawImage(spritesheet, -i * frameWidth, 0);
-        }
-    }
+    private void loadWalkAnimation() { 
+        int frameCount = 7; 
+        walkFrames= new GreenfootImage[frameCount]; 
+        int frameWidth = 100; 
+        int frameHeight = 64; 
+        GreenfootImage spritesheet = new GreenfootImage("Walking_KG_2.png"); 
+        for (int i = 0; i < walkFrames.length; i++) { 
+            walkFrames[i] = new GreenfootImage(frameWidth, frameHeight); 
+            walkFrames[i].drawImage(spritesheet, -i * frameWidth, 0); 
+        } 
+    } 
 
-    private void loadJumpAnimation() {
-        int frameCount = 6;
-        jumpFrames = new GreenfootImage[frameCount];
-        int frameWidth = 100;
-        int frameHeight = 64;
-        GreenfootImage spritesheet = new GreenfootImage("Jump_KG_2.png");
-        for (int i = 0; i < jumpFrames.length; i++) {
-            jumpFrames[i] = new GreenfootImage(frameWidth, frameHeight);
-            jumpFrames[i].drawImage(spritesheet, -i * frameWidth, 0);
-        }
-    }
+    private void loadJumpAnimation() { 
+        int frameCount = 6; 
+        jumpFrames = new GreenfootImage[frameCount]; 
+        int frameWidth = 100; 
+        int frameHeight = 64; 
+        GreenfootImage spritesheet = new GreenfootImage("Jump_KG_2.png"); 
+        for (int i = 0; i < jumpFrames.length; i++) { 
+            jumpFrames[i] = new GreenfootImage(frameWidth, frameHeight); 
+            jumpFrames[i].drawImage(spritesheet, -i * frameWidth, 0); 
+        } 
+    } 
 
-    private void loadAttackAnimation() {
-        int frameCount = 6;
-        attackFrames = new GreenfootImage[frameCount];
-        int frameWidth = 100;
-        int frameHeight = 64;
-        GreenfootImage spritesheet = new GreenfootImage("Attack_KG_1.png");
-        for (int i = 0; i < attackFrames.length; i++) {
-            attackFrames[i] = new GreenfootImage(frameWidth, frameHeight);
-            attackFrames[i].drawImage(spritesheet, -i * frameWidth, 0);
-        }
-    }
+    private void loadAttackAnimation() { 
+        int frameCount = 6; 
+        attackFrames = new GreenfootImage[frameCount]; 
+        int frameWidth = 100; 
+        int frameHeight = 64; 
+        GreenfootImage spritesheet = new GreenfootImage("Attack_KG_1.png"); 
+        for (int i = 0; i < attackFrames.length; i++) { 
+            attackFrames[i] = new GreenfootImage(frameWidth, frameHeight); 
+            attackFrames[i].drawImage(spritesheet, -i * frameWidth, 0); 
+        } 
+    } 
 }
