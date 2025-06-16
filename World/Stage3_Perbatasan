@@ -33,9 +33,9 @@ public class Stage3_Perbatasan extends World {
         addObject(new Knight(), 80, 470);
         
         // Musuh lebih banyak dan di posisi menyulitkan
-        addObject(new Musuh(), 350, 500);
-        addObject(new Musuh(), 700, 500);
-        addObject(new Musuh(), 650, 300); // Musuh di platform atas
+        addObject(new Musuh(), 350, 435);
+        addObject(new Musuh(), 700, 435);
+        addObject(new Musuh(), 650, 317); // Musuh di platform atas
         
         // Portal menuju Boss (untuk nanti)
         addObject(new Portal(), 980, 500);
