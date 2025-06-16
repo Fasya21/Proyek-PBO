@@ -1,0 +1,60 @@
+import greenfoot.*;
+
+public class Stage3_Perbatasan extends World {
+    private static final int LEBAR = 1024;
+    private static final int TINGGI = 576;
+    private int score;
+
+    public Stage3_Perbatasan() {
+        super(LEBAR, TINGGI, 1);
+        
+        GreenfootImage background = new GreenfootImage("Village3.png");
+        background.scale(getWidth(), getHeight());
+        setBackground(background);
+        
+        tataLevel();
+        siapkanUI();
+        
+        setPaintOrder(Knight.class, Musuh.class, Portal.class, Platform.class);
+    }
+
+    private void tataLevel() {
+        // Desain level ini lebih sulit dari sebelumnya
+        
+        // Pijakan utama
+        addObject(new Platform(400, 20), 100, 515);
+        addObject(new Platform(970, 20), 800, 470);
+        
+        // Pijakan melayang yang butuh lompatan presisi
+        addObject(new Platform(100, 20), 500, 400);
+        addObject(new Platform(100, 20), 650, 350);
+        
+        // Tempatkan Knight di awal
+        addObject(new Knight(), 80, 470);
+        
+        // Musuh lebih banyak dan di posisi menyulitkan
+        addObject(new Musuh(), 350, 500);
+        addObject(new Musuh(), 700, 500);
+        addObject(new Musuh(), 650, 300); // Musuh di platform atas
+        
+        // Portal menuju Boss (untuk nanti)
+        addObject(new Portal(), 980, 500);
+    }
+    
+    // (Salin-tempel metode UI dari stage sebelumnya)
+    private void siapkanUI() {
+        showText("Stage 3: Pos Perbatasan", 150, 30);
+        score = 0; // Seharusnya skor dibawa dari level sebelumnya, tapi kita sederhanakan dulu
+        updateScoreDisplay();
+    }
+    public void addScore(int points) {
+        score += points;
+        updateScoreDisplay();
+    }
+    private void updateScoreDisplay() {
+        getBackground().setColor(new Color(99, 80, 82)); // Warna langit senja
+        getBackground().fillRect(LEBAR - 200, 10, 180, 40);
+        getBackground().setColor(Color.WHITE);
+        getBackground().drawString("Skor: " + score, LEBAR - 150, 30);
+    }
+}
