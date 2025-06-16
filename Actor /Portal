@@ -1,43 +1,36 @@
 import greenfoot.*;
 
 public class Portal extends Actor {
-
     public Portal() {
-        // Portal ini dibuat tidak terlihat agar menyatu dengan game
-        getImage().setTransparency(0);
-
-        // Tips: Jika Anda ingin melihat posisi portal saat mendesain level,
-        // hapus sementara tanda komentar di bawah ini.
+        getImage().setTransparency(0); // Portal tidak terlihat
     }
 
     public void act() {
-        // Cek apakah ada objek Knight yang menyentuh portal ini
         Knight knight = (Knight) getOneIntersectingObject(Knight.class);
 
-        // Jika Knight terdeteksi menyentuh portal
         if (knight != null) {
+            // Hentikan semua suara dari Knight
+            knight.stopAllSounds();
 
-            // >>> TAMBAHKAN BARIS INI UNTUK MENGHENTIKAN SUARA LARI KNIGHT <<<
-            knight.stopAllSounds(); // Memanggil metode di kelas Knight untuk menghentikan suara looping
+            // Ambil world sekarang
+            GameWorld currentWorld = (GameWorld) getWorld();
 
-            // Mengambil referensi ke world saat ini
-            GameWorld worldSaatIni = (GameWorld) getWorld();
+            // Hentikan musik background world saat ini
+            currentWorld.stopMusic();
 
-            // Mengambil data skor dan nyawa dari world saat ini
-            int skorSekarang = worldSaatIni.getScore();
-            int nyawaSekarang = worldSaatIni.getLives();
+            // Pindah ke stage berikutnya berdasarkan instance
+            if (currentWorld instanceof Stage1_Desa) {
+                Greenfoot.setWorld(new Stage2_Arena(currentWorld.getScore(), currentWorld.getLives()));
 
-            // Tentukan stage berikutnya berdasarkan stage saat ini
-            if (worldSaatIni instanceof Stage1_Desa) {
-                Greenfoot.setWorld(new Stage2_Arena(skorSekarang, nyawaSekarang));
+            } else if (currentWorld instanceof Stage2_Arena) {
+                Greenfoot.setWorld(new Stage3_Perbatasan(currentWorld.getScore(), currentWorld.getLives()));
 
-            } else if (worldSaatIni instanceof Stage2_Arena) {
-                Greenfoot.setWorld(new Stage3_Perbatasan(skorSekarang, nyawaSekarang));
-
-            } else if (worldSaatIni instanceof Stage3_Perbatasan) {
-                // Setelah stage terakhir, pindah ke layar Game Over (yang akan menampilkan kemenangan)
-                Greenfoot.setWorld(new LayarGameOver(skorSekarang));
-                Greenfoot.stop(); // Hentikan game setelah menang
+            } else if (currentWorld instanceof Stage3_Perbatasan) {
+                // Tampilkan pesan kemenangan dan hentikan game
+                currentWorld.showText("SELAMAT! ANDA MENYELESAIKAN SEMUA STAGE!",
+                                      currentWorld.getWidth() / 2, currentWorld.getHeight() / 2);
+                Greenfoot.delay(100);
+                Greenfoot.stop();
             }
         }
     }
