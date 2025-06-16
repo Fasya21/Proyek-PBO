@@ -1,0 +1,77 @@
+import greenfoot.*;
+import java.util.ArrayList;
+
+public abstract class GameWorld extends World {
+    // Properti yang akan dimiliki semua stage
+    protected int score;
+    protected int lives;
+
+    // Untuk menyimpan objek UI hati
+    private ArrayList<UI_Hati> heartsUI = new ArrayList<UI_Hati>();
+
+    // Constructor untuk memulai stage baru dari awal (seperti saat game pertama kali dimulai)
+    public GameWorld() {
+        super(1024, 576, 1); // Ukuran default, bisa di-override
+        this.score = 0;
+        this.lives = 3; // Pemain mulai dengan 3 nyawa
+    }
+
+    // Constructor untuk melanjutkan ke stage berikutnya (membawa skor dan nyawa)
+    public GameWorld(int scoreSebelumnya, int livesSebelumnya) {
+        super(1024, 576, 1);
+        this.score = scoreSebelumnya;
+        this.lives = livesSebelumnya;
+    }
+
+    // --- METODE-METODE UNTUK MENGATUR GAME STATE ---
+    public void addScore(int points) {
+        score += points;
+        updateScoreDisplay();
+    }
+
+    public void playerDied() {
+        lives--;
+        updateLivesUI();
+        if (lives > 0) {
+            // Restart level saat ini
+            if (this instanceof Stage1_Desa) Greenfoot.setWorld(new Stage1_Desa(this.score, this.lives));
+            else if (this instanceof Stage2_Arena) Greenfoot.setWorld(new Stage2_Arena(this.score, this.lives));
+            else if (this instanceof Stage3_Perbatasan) Greenfoot.setWorld(new Stage3_Perbatasan(this.score, this.lives));
+        } else {
+            // Nyawa habis, Game Over!
+            Greenfoot.setWorld(new LayarGameOver(this.score));
+        }
+    }
+
+    // --- METODE-METODE UNTUK MENGATUR UI ---
+    protected void siapkanUI(String stageName) {
+        showText(stageName, 93, 30);
+        updateScoreDisplay();
+        updateLivesUI();
+    }
+
+    private void updateScoreDisplay() {
+        // Kita gambar kotak untuk menghapus teks lama
+        getBackground().setColor(new Color(66, 70, 77, 150)); // Warna semi-transparan
+        getBackground().fillRect(getWidth() - 200, 10, 180, 40);
+        getBackground().setColor(Color.WHITE);
+        getBackground().drawString("Skor: " + score, getWidth() - 150, 30);
+    }
+
+    private void updateLivesUI() {
+        // Hapus semua objek hati yang lama
+        removeObjects(heartsUI);
+        heartsUI.clear();
+
+        // Tambahkan objek hati yang baru sesuai jumlah nyawa
+        for (int i = 0; i < lives; i++) {
+            UI_Hati heart = new UI_Hati();
+            addObject(heart, 40 + (i * 40), 70);
+            heartsUI.add(heart);
+        }
+    }
+
+    // --- GETTER UNTUK PORTAL ---
+    public int getScore() { return score; }
+    public int getLives() { return lives; }
+}
