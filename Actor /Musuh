@@ -6,7 +6,8 @@ public class Musuh extends Actor {
     private int currentFrame = 0;
     private int animationTimer = 0;
     private final int ANIMATION_SPEED = 12;
-    private int health = 100; // Contoh nyawa awal musuh
+    
+    
 
     public Musuh() {
         loadIdleAnimation();
@@ -15,19 +16,6 @@ public class Musuh extends Actor {
 
     public void act() {
         animateIdle();
-    }
-    
-    public void takeDamage(int damage) {
-        health = health - damage;
-        if (health <= 0) {
-            die();
-        }
-    }
-    
-    private void die() {
-        // Mungkin bisa ditambahkan suara atau animasi ledakan di sini sebelum dihapus
-        // contoh: Greenfoot.playSound("explosion.wav");
-        getWorld().removeObject(this); // Menghapus objek musuh dari world
     }
 
     private void loadIdleAnimation() {
