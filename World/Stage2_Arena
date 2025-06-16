@@ -33,24 +33,28 @@ public class Stage2_Arena extends World {
         addObject(new Platform(LEBAR, 20), LEBAR / 2, 545);
         
         // Pijakan di atas bangunan tengah (arena utama)
-        addObject(new Platform(280, 20), 600, 500); // Lantai tengah
-        addObject(new Platform(200, 20), 600, 300); // Balkon atas (tujuan)
+        addObject(new Platform(250, 20), 470, 420); // Lantai tengah
         
         // Pijakan di sisi kiri
-        addObject(new Platform(150, 20), 180, 400);
-        
+        addObject(new Platform(170, 20), 170, 420);
+        addObject(new Platform(70, 20), 70, 315);
         // Pijakan di sisi kanan
-        addObject(new Platform(150, 20), 1020, 400);
+        addObject(new Platform(150, 20), 760, 420);
+        addObject(new Platform(100, 20), 845, 475);
+        // Pijakan di atap
+        addObject(new Platform(750, 10), 500, 245);
         
         // Tempatkan Knight di awal level (misal di kiri bawah)
         addObject(new Knight(), 100, 500);
         
         // Tempatkan beberapa musuh di lokasi yang menantang
-        addObject(new Musuh(), 1000, 365); // Musuh di platform kanan
-        addObject(new Musuh(), 600, 465);  // Musuh di lantai tengah arena
-        
-        // Tempatkan Portal tujuan di balkon tertinggi
-        addObject(new Portal(), 600, 250);
+        addObject(new Musuh(), 450, 390); // Musuh di lantai 2 tengah arena
+        addObject(new Musuh(), 600, 520);  // Musuh di lantai tengah arena
+        addObject(new Musuh(), 1000, 520); // Musuh di lantai paling kanan
+        addObject(new Musuh(), 670, 225); // Musuh di atap
+        addObject(new Musuh(), 370, 225); // Musuh di atap
+        // Tempatkan Portal tujuan di bagian paling kanan
+        addObject(new Portal(), 1024, 540);
     }
     
     /**
