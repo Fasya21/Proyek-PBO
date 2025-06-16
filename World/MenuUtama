@@ -1,39 +1,22 @@
 import greenfoot.*;
 
-public class LayarCerita extends World {
+public class MenuUtama extends World {
 
-    public LayarCerita() {
-        super(1024, 576, 1);
+    public MenuUtama() {
+        super(1024, 576, 1); // Ukuran bisa disesuaikan
         
-        // Latar belakang hitam polos
-        getBackground().setColor(Color.BLACK);
-        getBackground().fill();
+        // Gunakan salah satu background desa Anda yang paling bagus untuk menu
+        GreenfootImage background = new GreenfootImage("Village.jpg");
+        background.scale(getWidth(), getHeight());
+        setBackground(background);
         
-        // Tampilkan teks cerita
-        tampilkanTeks();
-    }
-    
-    private void tampilkanTeks() {
-        // Gunakan \n untuk membuat baris baru
-        String cerita = "Di negeri yang mulai redup oleh bayang-bayang kelam...\n\n" +
-                        "Seorang ksatria bernama Elara memulai perjalanannya.\n\n" +
-                        "Dengan tekad sekeras baja, ia melangkah maju,\n" +
-                        "mencari ujian untuk membuktikan kekuatannya\n" +
-                        "dan mengembalikan cahaya ke seluruh penjuru negeri.";
-                        
-        // Tampilkan cerita di tengah layar
-        // (Greenfoot tidak mendukung multiline di showText, jadi kita tampilkan manual)
-        showText("Di negeri yang mulai redup oleh bayang-bayang kelam...", getWidth()/2, 200);
-        showText("Seorang ksatria bernama Elara memulai perjalanannya.", getWidth()/2, 250);
-        showText("Dengan tekad sekeras baja, ia melangkah maju...", getWidth()/2, 300);
+        // Tambahkan Judul Game
+        showText("Petualangan Elara", getWidth() / 2, 150);
         
-        showText("Klik di mana saja untuk melanjutkan.", getWidth()/2, 500);
-    }
-    
-    public void act() {
-        // Jika pemain mengklik di mana saja, mulai Stage 1
-        if (Greenfoot.mouseClicked(null)) {
-            Greenfoot.setWorld(new Stage1_Desa());
-        }
+        // Tambahkan Tombol Mulai
+        addObject(new Tombol("mulai", "tombol_mulai.png"), getWidth() / 2, 300);
+        
+        // Tambahkan Tombol Keluar
+        // addObject(new Tombol("keluar", "tombol_keluar.png"), getWidth() / 2, 400);
     }
 }
