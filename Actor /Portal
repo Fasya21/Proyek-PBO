@@ -1,20 +1,42 @@
 import greenfoot.*;
+
 public class Portal extends Actor {
+    // Tidak perlu konstruktor dengan nextStageName, karena logika transisi ada di dalam act().
+
     public Portal() {
         // Portal ini tak terlihat
-        getImage().setTransparency(0); 
+        getImage().setTransparency(0);
+        // Jika Anda ingin melihat portal di editor, Anda bisa memberinya gambar sementara
+        // atau mengatur transparansi ke nilai yang lebih tinggi saat pengembangan.
+        // Contoh untuk melihatnya di editor:
+        // GreenfootImage img = new GreenfootImage(50, 70);
+        // img.setColor(new Color(150, 0, 200, 100)); // Warna ungu transparan
+        // img.fill();
+        // setImage(img);
     }
+
     public void act() {
-        if (isTouching(Knight.class)) {
-        if (getWorld() instanceof Stage1_Desa) {
-            Greenfoot.setWorld(new Stage2_Arena());
-        } else if (getWorld() instanceof Stage2_Arena) {
-            Greenfoot.setWorld(new Stage3_Perbatasan()); // <-- Pindah ke Stage 3
-        } else if (getWorld() instanceof Stage3_Perbatasan) {
-            // Nanti akan pindah ke layar Boss
-            getWorld().showText("SELAMAT! ANDA MENYELESAIKAN SEMUA STAGE!", getWorld().getWidth()/2, getWorld().getHeight()/2);
-            Greenfoot.stop();
+        // Cek apakah ada objek Knight yang menyentuh portal ini
+        Knight knight = (Knight) getOneIntersectingObject(Knight.class);
+
+        // Jika Knight menyentuh portal
+        if (knight != null) {
+            // PENTING: Hentikan suara Knight yang sedang berjalan sebelum pindah stage!
+            knight.stopAllSounds(); // Memanggil metode yang kita tambahkan di kelas Knight
+
+            // Tentukan stage berikutnya berdasarkan stage saat ini
+            if (getWorld() instanceof Stage1_Desa) {
+                Greenfoot.setWorld(new Stage2_Arena());
+            } else if (getWorld() instanceof Stage2_Arena) {
+                Greenfoot.setWorld(new Stage3_Perbatasan()); // Pindah ke Stage 3
+            } else if (getWorld() instanceof Stage3_Perbatasan) {
+                // Contoh: Pindah ke layar "SELAMAT" atau "Boss"
+                getWorld().showText("SELAMAT! ANDA MENYELESAIKAN SEMUA STAGE!", getWorld().getWidth()/2, getWorld().getHeight()/2);
+                Greenfoot.delay(100); // Beri waktu pemain membaca pesan (sekitar 1.6 detik)
+                Greenfoot.stop(); // Hentikan eksekusi game
+            }
+            // Setelah Greenfoot.setWorld() dipanggil, eksekusi act() untuk frame ini akan berhenti
+            // dan World baru akan dimuat. Tidak perlu removeObject(this) di sini.
         }
-    }
     }
 }
