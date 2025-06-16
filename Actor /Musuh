@@ -2,30 +2,48 @@ import greenfoot.*;
 
 public class Musuh extends Actor {
     // Animasi
-    private GreenfootImage[] idleFrames, hitAnimation;
+    private GreenfootImage[] idleFrames;
+    private GreenfootImage[] hitFrames;
     private int currentFrame = 0;
     private int animationTimer = 0;
     private final int ANIMATION_SPEED = 12;
     
     private int health = 100;
+    private boolean isHit = false;
 
     public Musuh() {
         loadIdleAnimation();
+        loadHitAnimation();
         setImage(idleFrames[0]);
     }
 
     public void act() {
-        animateIdle();
+        animate();
     }
     
     public void takeDamage(int damage) {
         health = health - damage;
         if (health <= 0) {
             die();
+        } else {
+            // Ini akan memicu animasi "hit" untuk dimainkan.
+            isHit = true;
+            currentFrame = 0; // Mulai animasi hit dari frame pertama
+            animationTimer = 0; // Reset timer animasi
         }
     }
     
     private void die() {
+        // Tambahkan skor berdasarkan stage saat musuh ini dikalahkan
+        // Logika ini dipindahkan dari Knight.java
+        if (getWorld() instanceof Stage1_Desa) {
+            ((Stage1_Desa) getWorld()).addScore(15);
+        } else if (getWorld() instanceof Stage2_Arena) {
+            ((Stage2_Arena) getWorld()).addScore(15);
+        } else if (getWorld() instanceof Stage3_Perbatasan) {
+            ((Stage3_Perbatasan) getWorld()).addScore(15);
+        }
+        
         // Mungkin bisa ditambahkan suara atau animasi ledakan di sini sebelum dihapus
         // contoh: Greenfoot.playSound("explosion.wav");
         getWorld().removeObject(this); // Menghapus objek musuh dari world
@@ -42,34 +60,41 @@ public class Musuh extends Actor {
         }
     }
     
-    private void hitAnimation(){
-        hitAnimation = new GreenfootImage[4];
+    private void loadHitAnimation(){
+        hitFrames = new GreenfootImage[4];
         int frameWidth = 48;
         int frameHeight = 32;
         GreenfootImage spritesheet = new GreenfootImage("Hit-Sheet.png");
-        for (int i = 0; i < hitAnimation.length; i++){
-            hitAnimation[i] = new GreenfootImage(frameWidth, frameHeight);
-            hitAnimation[i].drawImage(spritesheet, -i * frameWidth, 0);
+        for (int i = 0; i < hitFrames.length; i++) {
+            hitFrames[i] = new GreenfootImage(frameWidth, frameHeight);
+            hitFrames[i].drawImage(spritesheet, -i * frameWidth, 0);
         }
     }
 
-    private void animateIdle() {
+    private void animate() {
     animationTimer++;
-    if (animationTimer >= ANIMATION_SPEED) {
-        animationTimer = 0;
-        
-        // Bergerak maju melalui frame
-        if (currentFrame < idleFrames.length - 1) {
-            currentFrame++;
-        } 
-        // Kembali ke frame pertama setelah mencapai akhir
-        else {
-            currentFrame = 0;
-            // Beri jeda sebelum memulai lagi
-            Greenfoot.delay(10);
+        if (animationTimer < ANIMATION_SPEED) {
+            return; // Tunggu sampai timer tercapai
         }
-        
-        setImage(idleFrames[currentFrame]);
-    }
+        animationTimer = 0; // Reset timer
+
+        // Jika dalam keadaan "terkena serangan" (isHit = true)
+        if (isHit) {
+            // Mainkan animasi "hit"
+            currentFrame++;
+            // Jika animasi "hit" sudah selesai
+            if (currentFrame >= hitFrames.length) {
+                currentFrame = 0; // Reset frame
+                isHit = false;    // Kembali ke keadaan normal (tidak lagi "hit")
+                setImage(idleFrames[0]); // Kembali ke gambar idle pertama
+            } else {
+                // Jika animasi "hit" masih berjalan, tampilkan frame berikutnya
+                setImage(hitFrames[currentFrame]);
+            }
+        } else {
+            // Jika tidak dalam keadaan "hit", mainkan animasi idle seperti biasa
+            currentFrame = (currentFrame + 1) % idleFrames.length;
+            setImage(idleFrames[currentFrame]);
+        }
 }
 }
